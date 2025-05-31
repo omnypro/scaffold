@@ -1,10 +1,3 @@
-//
-//  ContentView.swift
-//  Scaffold
-//
-//  Created by Bryan Veloso on 5/30/25.
-//
-
 import AppKit
 import SwiftUI
 import WebKit

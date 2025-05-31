@@ -12,50 +12,50 @@
 			containerPortal = E3166C512DEABF13001D5492 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = E3166C582DEABF13001D5492;
-			remoteInfo = Scaffold;
+			remoteInfo = Scaffolde;
 		};
 		E3166C722DEABF14001D5492 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E3166C512DEABF13001D5492 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = E3166C582DEABF13001D5492;
-			remoteInfo = Scaffold;
+			remoteInfo = Scaffolde;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		E3166C592DEABF13001D5492 /* Scaffold.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Scaffold.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E3166C672DEABF14001D5492 /* ScaffoldTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScaffoldTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		E3166C712DEABF14001D5492 /* ScaffoldUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScaffoldUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E3166C592DEABF13001D5492 /* Scaffolde.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Scaffolde.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E3166C672DEABF14001D5492 /* ScaffoldeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScaffoldeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		E3166C712DEABF14001D5492 /* ScaffoldeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScaffoldeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		E3166C892DEACB80001D5492 /* Exceptions for "Scaffold" folder in "Scaffold" target */ = {
+		E3166C892DEACB80001D5492 /* Exceptions for "Scaffolde" folder in "Scaffolde" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = E3166C582DEABF13001D5492 /* Scaffold */;
+			target = E3166C582DEABF13001D5492 /* Scaffolde */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		E3166C5B2DEABF13001D5492 /* Scaffold */ = {
+		E3166C5B2DEABF13001D5492 /* Scaffolde */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				E3166C892DEACB80001D5492 /* Exceptions for "Scaffold" folder in "Scaffold" target */,
+				E3166C892DEACB80001D5492 /* Exceptions for "Scaffolde" folder in "Scaffolde" target */,
 			);
-			path = Scaffold;
+			path = Scaffolde;
 			sourceTree = "<group>";
 		};
-		E3166C6A2DEABF14001D5492 /* ScaffoldTests */ = {
+		E3166C6A2DEABF14001D5492 /* ScaffoldeTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ScaffoldTests;
+			path = ScaffoldeTests;
 			sourceTree = "<group>";
 		};
-		E3166C742DEABF14001D5492 /* ScaffoldUITests */ = {
+		E3166C742DEABF14001D5492 /* ScaffoldeUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = ScaffoldUITests;
+			path = ScaffoldeUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -88,9 +88,9 @@
 		E3166C502DEABF13001D5492 = {
 			isa = PBXGroup;
 			children = (
-				E3166C5B2DEABF13001D5492 /* Scaffold */,
-				E3166C6A2DEABF14001D5492 /* ScaffoldTests */,
-				E3166C742DEABF14001D5492 /* ScaffoldUITests */,
+				E3166C5B2DEABF13001D5492 /* Scaffolde */,
+				E3166C6A2DEABF14001D5492 /* ScaffoldeTests */,
+				E3166C742DEABF14001D5492 /* ScaffoldeUITests */,
 				E3166C5A2DEABF13001D5492 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -98,9 +98,9 @@
 		E3166C5A2DEABF13001D5492 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E3166C592DEABF13001D5492 /* Scaffold.app */,
-				E3166C672DEABF14001D5492 /* ScaffoldTests.xctest */,
-				E3166C712DEABF14001D5492 /* ScaffoldUITests.xctest */,
+				E3166C592DEABF13001D5492 /* Scaffolde.app */,
+				E3166C672DEABF14001D5492 /* ScaffoldeTests.xctest */,
+				E3166C712DEABF14001D5492 /* ScaffoldeUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,9 +108,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		E3166C582DEABF13001D5492 /* Scaffold */ = {
+		E3166C582DEABF13001D5492 /* Scaffolde */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E3166C7B2DEABF14001D5492 /* Build configuration list for PBXNativeTarget "Scaffold" */;
+			buildConfigurationList = E3166C7B2DEABF14001D5492 /* Build configuration list for PBXNativeTarget "Scaffolde" */;
 			buildPhases = (
 				E3166C8E2DEB766E001D5492 /* Set Build Number from Git */,
 				E3166C552DEABF13001D5492 /* Sources */,
@@ -122,18 +122,18 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				E3166C5B2DEABF13001D5492 /* Scaffold */,
+				E3166C5B2DEABF13001D5492 /* Scaffolde */,
 			);
-			name = Scaffold;
+			name = Scaffolde;
 			packageProductDependencies = (
 			);
-			productName = Scaffold;
-			productReference = E3166C592DEABF13001D5492 /* Scaffold.app */;
+			productName = Scaffolde;
+			productReference = E3166C592DEABF13001D5492 /* Scaffolde.app */;
 			productType = "com.apple.product-type.application";
 		};
-		E3166C662DEABF14001D5492 /* ScaffoldTests */ = {
+		E3166C662DEABF14001D5492 /* ScaffoldeTests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E3166C7E2DEABF14001D5492 /* Build configuration list for PBXNativeTarget "ScaffoldTests" */;
+			buildConfigurationList = E3166C7E2DEABF14001D5492 /* Build configuration list for PBXNativeTarget "ScaffoldeTests" */;
 			buildPhases = (
 				E3166C632DEABF14001D5492 /* Sources */,
 				E3166C642DEABF14001D5492 /* Frameworks */,
@@ -145,18 +145,18 @@
 				E3166C692DEABF14001D5492 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				E3166C6A2DEABF14001D5492 /* ScaffoldTests */,
+				E3166C6A2DEABF14001D5492 /* ScaffoldeTests */,
 			);
-			name = ScaffoldTests;
+			name = ScaffoldeTests;
 			packageProductDependencies = (
 			);
-			productName = ScaffoldTests;
-			productReference = E3166C672DEABF14001D5492 /* ScaffoldTests.xctest */;
+			productName = ScaffoldeTests;
+			productReference = E3166C672DEABF14001D5492 /* ScaffoldeTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		E3166C702DEABF14001D5492 /* ScaffoldUITests */ = {
+		E3166C702DEABF14001D5492 /* ScaffoldeUITests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E3166C812DEABF14001D5492 /* Build configuration list for PBXNativeTarget "ScaffoldUITests" */;
+			buildConfigurationList = E3166C812DEABF14001D5492 /* Build configuration list for PBXNativeTarget "ScaffoldeUITests" */;
 			buildPhases = (
 				E3166C6D2DEABF14001D5492 /* Sources */,
 				E3166C6E2DEABF14001D5492 /* Frameworks */,
@@ -168,13 +168,13 @@
 				E3166C732DEABF14001D5492 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				E3166C742DEABF14001D5492 /* ScaffoldUITests */,
+				E3166C742DEABF14001D5492 /* ScaffoldeUITests */,
 			);
-			name = ScaffoldUITests;
+			name = ScaffoldeUITests;
 			packageProductDependencies = (
 			);
-			productName = ScaffoldUITests;
-			productReference = E3166C712DEABF14001D5492 /* ScaffoldUITests.xctest */;
+			productName = ScaffoldeUITests;
+			productReference = E3166C712DEABF14001D5492 /* ScaffoldeUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -200,7 +200,7 @@
 					};
 				};
 			};
-			buildConfigurationList = E3166C542DEABF13001D5492 /* Build configuration list for PBXProject "Scaffold" */;
+			buildConfigurationList = E3166C542DEABF13001D5492 /* Build configuration list for PBXProject "Scaffolde" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -214,9 +214,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				E3166C582DEABF13001D5492 /* Scaffold */,
-				E3166C662DEABF14001D5492 /* ScaffoldTests */,
-				E3166C702DEABF14001D5492 /* ScaffoldUITests */,
+				E3166C582DEABF13001D5492 /* Scaffolde */,
+				E3166C662DEABF14001D5492 /* ScaffoldeTests */,
+				E3166C702DEABF14001D5492 /* ScaffoldeUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -263,7 +263,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "  # Get git info from the project directory\n  cd \"${PROJECT_DIR}\"\n\n  # Get commit count for build number\n  BUILD_NUMBER=$(git rev-list --count HEAD 2>/dev/null || echo \"0\")\n\n  # Get commit SHA for reference (optional)\n  GIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo \"unknown\")\n\n  # Check for uncommitted changes\n  if ! git diff --quiet HEAD 2>/dev/null; then\n      BUILD_NUMBER=\"${BUILD_NUMBER}+\"  # Add + for dirty builds\n  fi\n\n  echo \"Build number: $BUILD_NUMBER (commit: $GIT_SHA)\"\n\n  # Update the source Info.plist\n  SOURCE_PLIST=\"${PROJECT_DIR}/Scaffold/Info.plist\"\n  if [ -f \"$SOURCE_PLIST\" ]; then\n      # Set build number\n      /usr/libexec/PlistBuddy -c \"Add :CFBundleVersion string $BUILD_NUMBER\" \"$SOURCE_PLIST\" 2>/dev/null || \\\n      /usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $BUILD_NUMBER\" \"$SOURCE_PLIST\"\n\n      # Optionally store commit SHA\n      /usr/libexec/PlistBuddy -c \"Add :ScaffoldCommit string $GIT_SHA\" \"$SOURCE_PLIST\" 2>/dev/null || \\\n      /usr/libexec/PlistBuddy -c \"Set :ScaffoldCommit $GIT_SHA\" \"$SOURCE_PLIST\"\n  fi\n";
+			shellScript = "  # Get git info from the project directory\n  cd \"${PROJECT_DIR}\"\n\n  # Get commit count for build number\n  BUILD_NUMBER=$(git rev-list --count HEAD 2>/dev/null || echo \"0\")\n\n  # Get commit SHA for reference (optional)\n  GIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo \"unknown\")\n\n  # Check for uncommitted changes\n  if ! git diff --quiet HEAD 2>/dev/null; then\n      BUILD_NUMBER=\"${BUILD_NUMBER}+\"  # Add + for dirty builds\n  fi\n\n  echo \"Build number: $BUILD_NUMBER (commit: $GIT_SHA)\"\n\n  # Update the source Info.plist\n  SOURCE_PLIST=\"${PROJECT_DIR}/Scaffolde/Info.plist\"\n  if [ -f \"$SOURCE_PLIST\" ]; then\n      # Set build number\n      /usr/libexec/PlistBuddy -c \"Add :CFBundleVersion string $BUILD_NUMBER\" \"$SOURCE_PLIST\" 2>/dev/null || \\\n      /usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $BUILD_NUMBER\" \"$SOURCE_PLIST\"\n\n      # Optionally store commit SHA\n      /usr/libexec/PlistBuddy -c \"Add :ScaffoldeCommit string $GIT_SHA\" \"$SOURCE_PLIST\" 2>/dev/null || \\\n      /usr/libexec/PlistBuddy -c \"Set :ScaffoldeCommit $GIT_SHA\" \"$SOURCE_PLIST\"\n  fi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -294,12 +294,12 @@
 /* Begin PBXTargetDependency section */
 		E3166C692DEABF14001D5492 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = E3166C582DEABF13001D5492 /* Scaffold */;
+			target = E3166C582DEABF13001D5492 /* Scaffolde */;
 			targetProxy = E3166C682DEABF14001D5492 /* PBXContainerItemProxy */;
 		};
 		E3166C732DEABF14001D5492 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = E3166C582DEABF13001D5492 /* Scaffold */;
+			target = E3166C582DEABF13001D5492 /* Scaffolde */;
 			targetProxy = E3166C722DEABF14001D5492 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -425,16 +425,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Scaffold/Scaffold.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Scaffolde/Scaffolde.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = GSPJH236WZ;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Scaffold/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Scaffold;
+				INFOPLIST_FILE = Scaffolde/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Scaffolde;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2025 Omnyist Productions, LLC. All rights reserved.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -450,7 +452,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 0.8;
-				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.Scaffold;
+				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.scaffolde;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -468,16 +470,18 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
-				CODE_SIGN_ENTITLEMENTS = Scaffold/Scaffold.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Scaffolde/Scaffolde.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = GSPJH236WZ;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Scaffold/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = Scaffold;
+				INFOPLIST_FILE = Scaffolde/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Scaffolde;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2025 Omnyist Productions, LLC. All rights reserved.";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -493,7 +497,7 @@
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 0.8;
-				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.Scaffold;
+				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.scaffolde;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = auto;
@@ -515,14 +519,14 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.ScaffoldTests;
+				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.ScaffoldeTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = macosx;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Scaffold.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Scaffold";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Scaffolde.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Scaffolde";
 				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Debug;
@@ -537,14 +541,14 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.ScaffoldTests;
+				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.ScaffoldeTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = macosx;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Scaffold.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Scaffold";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Scaffolde.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Scaffolde";
 				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Release;
@@ -558,14 +562,14 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.ScaffoldUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.ScaffoldeUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = macosx;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = Scaffold;
+				TEST_TARGET_NAME = Scaffolde;
 				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Debug;
@@ -579,14 +583,14 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.ScaffoldUITests;
+				PRODUCT_BUNDLE_IDENTIFIER = pro.omny.ScaffoldeUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = macosx;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = Scaffold;
+				TEST_TARGET_NAME = Scaffolde;
 				XROS_DEPLOYMENT_TARGET = 2.5;
 			};
 			name = Release;
@@ -594,7 +598,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E3166C542DEABF13001D5492 /* Build configuration list for PBXProject "Scaffold" */ = {
+		E3166C542DEABF13001D5492 /* Build configuration list for PBXProject "Scaffolde" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E3166C792DEABF14001D5492 /* Debug */,
@@ -603,7 +607,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E3166C7B2DEABF14001D5492 /* Build configuration list for PBXNativeTarget "Scaffold" */ = {
+		E3166C7B2DEABF14001D5492 /* Build configuration list for PBXNativeTarget "Scaffolde" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E3166C7C2DEABF14001D5492 /* Debug */,
@@ -612,7 +616,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E3166C7E2DEABF14001D5492 /* Build configuration list for PBXNativeTarget "ScaffoldTests" */ = {
+		E3166C7E2DEABF14001D5492 /* Build configuration list for PBXNativeTarget "ScaffoldeTests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E3166C7F2DEABF14001D5492 /* Debug */,
@@ -621,7 +625,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E3166C812DEABF14001D5492 /* Build configuration list for PBXNativeTarget "ScaffoldUITests" */ = {
+		E3166C812DEABF14001D5492 /* Build configuration list for PBXNativeTarget "ScaffoldeUITests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E3166C822DEABF14001D5492 /* Debug */,

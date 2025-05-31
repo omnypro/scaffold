@@ -1,13 +1,6 @@
-//
-//  ScaffoldUITests.swift
-//  ScaffoldUITests
-//
-//  Created by Bryan Veloso on 5/30/25.
-//
-
 import XCTest
 
-final class ScaffoldUITests: XCTestCase {
+final class ScaffoldeUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

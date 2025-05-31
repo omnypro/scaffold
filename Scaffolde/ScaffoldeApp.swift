@@ -1,15 +1,8 @@
-//
-//  ScaffoldApp.swift
-//  Scaffold
-//
-//  Created by Bryan Veloso on 5/30/25.
-//
-
 import AppKit
 import SwiftUI
 
 @main
-struct ScaffoldApp: App {
+struct ScaffoldeApp: App {
     @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
@@ -21,7 +14,7 @@ struct ScaffoldApp: App {
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
-                Button("About Scaffold") {
+                Button("About Scaffolde") {
                     openWindow(id: "about")
                 }
             }
@@ -83,7 +76,7 @@ struct ScaffoldApp: App {
         }
         .windowToolbarStyle(.unified(showsTitle: false))
 
-        Window("About Scaffold", id: "about") {
+        Window("About Scaffolde", id: "about") {
             AboutView()
         }
         .windowStyle(.hiddenTitleBar)

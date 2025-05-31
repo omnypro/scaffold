@@ -1,23 +1,16 @@
-//
-//  AboutView.swift
-//  Scaffold
-//
-//  Created by Bryan Veloso on 5/31/25.
-//
-
 import SwiftUI
 
 struct AboutView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) var openURL
 
-    private let githubURL = URL(string: "https://github.com/omnypro/scaffold")
+    private let githubURL = URL(string: "https://github.com/omnypro/scaffolde")
 
     private var build: String? {
         Bundle.main.infoDictionary?["CFBundleVersion"] as? String
     }
     private var commit: String? {
-        Bundle.main.infoDictionary?["ScaffoldCommit"] as? String
+        Bundle.main.infoDictionary?["ScaffoldeCommit"] as? String
     }
     private var version: String? {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
@@ -62,7 +55,7 @@ struct AboutView: View {
 
             VStack(alignment: .center, spacing: 32) {
                 VStack(alignment: .center, spacing: 8) {
-                    Text("Scaffold").bold().font(.title)
+                    Text("Scaffolde").bold().font(.title)
                     Text("A rigid canvas for your ideas.").font(.caption).tint(
                         .secondary
                     ).opacity(0.8)

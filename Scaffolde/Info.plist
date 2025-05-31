@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleVersion</key>
-	<string>23</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
@@ -11,9 +9,7 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
-	<key>NSHumanReadableCopyright</key>
-	<string>© 2025 Omnyist Productions, LLC. All rights reserved.</string>
-	<key>ScaffoldCommit</key>
-	<string>a98d777</string>
+	<key>ScaffoldeCommit</key>
+	<string>138f504</string>
 </dict>
 </plist>

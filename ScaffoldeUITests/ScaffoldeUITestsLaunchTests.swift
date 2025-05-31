@@ -1,13 +1,6 @@
-//
-//  ScaffoldUITestsLaunchTests.swift
-//  ScaffoldUITests
-//
-//  Created by Bryan Veloso on 5/30/25.
-//
-
 import XCTest
 
-final class ScaffoldUITestsLaunchTests: XCTestCase {
+final class ScaffoldeUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
