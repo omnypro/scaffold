@@ -21,6 +21,13 @@ struct ScaffoldApp: App {
                 }
                 .keyboardShortcut("O", modifiers: .command)
             }
+            
+            CommandGroup(replacing: .toolbar) {
+                Button("Reload") {
+                    NotificationCenter.default.post(name: Notification.Name("RefreshWebView"), object: nil)
+                }
+                .keyboardShortcut("R", modifiers: .command)
+            }
         }
         .windowToolbarStyle(.unified(showsTitle: false))
     }

@@ -28,6 +28,25 @@ struct ContentView: View {
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("OpenFile"))) { _ in
                 selectLocalFile()
             }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("RefreshWebView"))) { _ in
+                // Find WKWebView recursively
+                func findWebView(in view: NSView) -> WKWebView? {
+                    if let webView = view as? WKWebView {
+                        return webView
+                    }
+                    for subview in view.subviews {
+                        if let found = findWebView(in: subview) {
+                            return found
+                        }
+                    }
+                    return nil
+                }
+                
+                if let window = NSApp.windows.first,
+                   let webView = findWebView(in: window.contentView!) {
+                    webView.reload()
+                }
+            }
             .toolbar {
                 ToolbarItemGroup(placement: .principal) {
                     TextField("Enter URL or file path", text: $urlString)
@@ -36,6 +55,12 @@ struct ContentView: View {
                         .onSubmit {
                             loadContent()
                         }
+                    
+                    Button(action: {
+                        NotificationCenter.default.post(name: Notification.Name("RefreshWebView"), object: nil)
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                    }
                 }
                 
                 ToolbarItemGroup(placement: .automatic) {
