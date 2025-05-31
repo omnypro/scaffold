@@ -3,7 +3,7 @@ import WebKit
 
 struct WebViewRepresentable: NSViewRepresentable {
     @Binding var urlString: String?
-    @Binding var consoleLogs: [ConsoleLog]
+    let consoleViewModel: ConsoleViewModel
 
     class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         var parent: WebViewRepresentable
@@ -21,13 +21,12 @@ struct WebViewRepresentable: NSViewRepresentable {
                     let level = dict["level"] as? String,
                     let message = dict["message"] as? String
                 {
-                    let log = ConsoleLog(
-                        level: level,
-                        message: message,
-                        timestamp: Date()
-                    )
+                    let logLevel = ConsoleLog.LogLevel(rawValue: level) ?? .log
                     DispatchQueue.main.async {
-                        self.parent.consoleLogs.append(log)
+                        self.parent.consoleViewModel.addLog(
+                            message,
+                            level: logLevel
+                        )
                     }
                 }
             }
@@ -171,22 +170,6 @@ struct WebViewRepresentable: NSViewRepresentable {
                 let request = URLRequest(url: url)
                 webView.load(request)
             }
-        }
-    }
-}
-
-struct ConsoleLog: Identifiable {
-    let id = UUID()
-    let level: String
-    let message: String
-    let timestamp: Date
-
-    var color: Color {
-        switch level {
-        case "error": return .red
-        case "warn": return .orange
-        case "info": return .blue
-        default: return .primary
         }
     }
 }
