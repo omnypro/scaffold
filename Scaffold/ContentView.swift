@@ -11,7 +11,7 @@ import AppKit
 
 struct ContentView: View {
     @State private var urlString: String = ""
-    @State private var loadedURL: String = ""
+    @State private var loadedURL: String? = nil
     @State private var consoleLogs: [ConsoleLog] = []
     @StateObject private var windowSettings = WindowSettings()
     @State private var currentWindowSize = WindowSize(name: "1080p", width: 1920, height: 1080)
@@ -21,16 +21,13 @@ struct ContentView: View {
             .frame(width: currentWindowSize.width, height: currentWindowSize.height)
             .toolbar {
                 ToolbarItemGroup(placement: .principal) {
-                    TextField("Enter URL or file path", text: $urlString, onCommit: {
-                        loadContent()
-                    })
-                    .textFieldStyle(.roundedBorder)
-                    .frame(minWidth: 300)
-                    
-                    Button("Load") {
-                        loadContent()
-                    }
-                    
+                    TextField("Enter URL or file path", text: $urlString)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(minWidth: 300)
+                        .onSubmit {
+                            loadContent()
+                        }
+                                        
                     Button("Browse...") {
                         selectLocalFile()
                     }
@@ -55,6 +52,7 @@ struct ContentView: View {
     }
     
     private func loadContent() {
+        guard !urlString.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         loadedURL = urlString
     }
     

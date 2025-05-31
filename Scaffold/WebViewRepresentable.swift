@@ -2,7 +2,7 @@ import SwiftUI
 import WebKit
 
 struct WebViewRepresentable: NSViewRepresentable {
-    @Binding var urlString: String
+    @Binding var urlString: String?
     @Binding var consoleLogs: [ConsoleLog]
     
     class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
@@ -104,36 +104,42 @@ struct WebViewRepresentable: NSViewRepresentable {
             webView.configuration.preferences.setValue(true, forKey: "developerExtrasEnabled")
         }
         
+        // Set transparent background to prevent white flash
+        webView.setValue(false, forKey: "drawsBackground")
+        webView.setValue(NSColor.windowBackgroundColor, forKey: "backgroundColor")
+        
         return webView
     }
     
     func updateNSView(_ webView: WKWebView, context: Context) {
-        guard !urlString.isEmpty else { return }
+        guard let urlString = urlString else { return }
+        let trimmedURL = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedURL.isEmpty else { return }
         
         // Check if we need to load a new URL
         let currentURL = webView.url?.absoluteString ?? ""
         
-        if urlString.hasPrefix("file://") || urlString.hasPrefix("/") {
+        if trimmedURL.hasPrefix("file://") || trimmedURL.hasPrefix("/") {
             // Handle local files
             let url: URL
-            if urlString.hasPrefix("file://") {
-                url = URL(string: urlString)!
+            if trimmedURL.hasPrefix("file://") {
+                url = URL(string: trimmedURL)!
             } else {
-                url = URL(fileURLWithPath: urlString)
+                url = URL(fileURLWithPath: trimmedURL)
             }
             
             if currentURL != url.absoluteString {
                 webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
             }
-        } else if urlString.hasPrefix("http://") || urlString.hasPrefix("https://") {
+        } else if trimmedURL.hasPrefix("http://") || trimmedURL.hasPrefix("https://") {
             // Handle web URLs
-            if let url = URL(string: urlString), currentURL != urlString {
+            if let url = URL(string: trimmedURL), currentURL != trimmedURL {
                 let request = URLRequest(url: url)
                 webView.load(request)
             }
-        } else if !urlString.isEmpty {
+        } else {
             // Assume https:// if no protocol
-            let fullURL = "https://\(urlString)"
+            let fullURL = "https://\(trimmedURL)"
             if let url = URL(string: fullURL), currentURL != fullURL {
                 let request = URLRequest(url: url)
                 webView.load(request)
