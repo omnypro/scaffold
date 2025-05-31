@@ -15,11 +15,12 @@ struct ContentView: View {
     @State private var consoleLogs: [ConsoleLog] = []
     @StateObject private var windowSettings = WindowSettings()
     @State private var currentWindowSize = WindowSize(name: "1080p", width: 1920, height: 1080)
+    @State private var selectedEngine: BrowserEngine = .webkit
     
     private let webViewPadding: CGFloat = 8
     
     var body: some View {
-        WebViewRepresentable(urlString: $loadedURL, consoleLogs: $consoleLogs)
+        selectedEngine.createView(urlString: $loadedURL, consoleLogs: $consoleLogs)
             .frame(width: currentWindowSize.width, height: currentWindowSize.height)
             .background(Color.black)
             .cornerRadius(8)
@@ -49,6 +50,11 @@ struct ContentView: View {
                 if let window = NSApp.windows.first,
                    let webView = findWebView(in: window.contentView!) {
                     webView.reload()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("SetEngine"))) { notification in
+                if let engine = notification.object as? BrowserEngine {
+                    selectedEngine = engine
                 }
             }
             .toolbar {

@@ -27,6 +27,18 @@ struct ScaffoldApp: App {
                     NotificationCenter.default.post(name: Notification.Name("RefreshWebView"), object: nil)
                 }
                 .keyboardShortcut("R", modifiers: .command)
+                
+                Divider()
+                
+                Menu("Browser Engine") {
+                    Button("WebKit") {
+                        NotificationCenter.default.post(name: Notification.Name("SetEngine"), object: BrowserEngine.webkit)
+                    }
+                    Button("Chromium (Coming Soon)") {
+                        NotificationCenter.default.post(name: Notification.Name("SetEngine"), object: BrowserEngine.chromium)
+                    }
+                    .disabled(true)
+                }
             }
         }
         .windowToolbarStyle(.unified(showsTitle: false))
