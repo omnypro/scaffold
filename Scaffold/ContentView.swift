@@ -23,8 +23,12 @@ struct ContentView: View {
             .frame(width: currentWindowSize.width, height: currentWindowSize.height)
             .background(Color.black)
             .cornerRadius(8)
-            .padding(webViewPadding)
-            .background(Color(NSColor.windowBackgroundColor))
+            .padding(EdgeInsets(top: 0, leading: webViewPadding, bottom: webViewPadding, trailing: webViewPadding))
+            .onAppear {
+                if let window = NSApp.windows.first {
+                    window.titlebarAppearsTransparent = true
+                }
+            }
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("OpenFile"))) { _ in
                 selectLocalFile()
             }
@@ -105,9 +109,8 @@ struct ContentView: View {
     private func setWindowSize(_ size: WindowSize) {
         // The WebView is now explicitly sized, so we just resize the window to fit
         if let window = NSApp.windows.first {
-            // Add padding to both dimensions to account for border
-            window.setContentSize(NSSize(width: size.width + (webViewPadding * 2), 
-                                         height: size.height + (webViewPadding * 2)))
+            // Add padding to account for border
+            window.setContentSize(NSSize(width: size.width + webViewPadding, height: size.height + webViewPadding))
             window.center()
         }
     }
