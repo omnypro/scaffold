@@ -50,7 +50,7 @@ class WindowViewModel: ObservableObject {
         panel.canChooseFiles = true
         panel.allowedContentTypes = [.png, .jpeg, .gif, .webP]
         panel.title = "Select Background Image"
-        panel.message = "Select a background image for your overlay development"
+        panel.message = "Select an image to serve as the backdrop for the browser window."
 
         if panel.runModal() == .OK {
             if let url = panel.url,
