@@ -14,6 +14,6 @@ struct ScaffoldApp: App {
         WindowGroup {
             ContentView()
         }
-        .windowToolbarStyle(.unified(showsTitle: true))
+        .windowToolbarStyle(.unified(showsTitle: false))
     }
 }
