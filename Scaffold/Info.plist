@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleVersion</key>
-	<string>22+</string>
+	<string>23</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoadsInWebContent</key>
@@ -14,6 +14,6 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2025 Omnyist Productions, LLC. All rights reserved.</string>
 	<key>ScaffoldCommit</key>
-	<string>bf491f7</string>
+	<string>a98d777</string>
 </dict>
 </plist>
