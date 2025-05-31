@@ -19,6 +19,9 @@ struct ContentView: View {
     var body: some View {
         WebViewRepresentable(urlString: $loadedURL, consoleLogs: $consoleLogs)
             .frame(width: currentWindowSize.width, height: currentWindowSize.height)
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("OpenFile"))) { _ in
+                selectLocalFile()
+            }
             .toolbar {
                 ToolbarItemGroup(placement: .principal) {
                     TextField("Enter URL or file path", text: $urlString)
@@ -27,10 +30,6 @@ struct ContentView: View {
                         .onSubmit {
                             loadContent()
                         }
-                                        
-                    Button("Browse...") {
-                        selectLocalFile()
-                    }
                 }
                 
                 ToolbarItemGroup(placement: .automatic) {

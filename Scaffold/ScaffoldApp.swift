@@ -14,6 +14,14 @@ struct ScaffoldApp: App {
         WindowGroup {
             ContentView()
         }
+        .commands {
+            CommandGroup(after: .newItem) {
+                Button("Open File...") {
+                    NotificationCenter.default.post(name: Notification.Name("OpenFile"), object: nil)
+                }
+                .keyboardShortcut("O", modifiers: .command)
+            }
+        }
         .windowToolbarStyle(.unified(showsTitle: false))
     }
 }
