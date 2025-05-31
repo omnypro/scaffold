@@ -67,6 +67,8 @@ struct ScaffoldApp: App {
                         object: nil
                     )
                 }
+
+                Divider()
             }
         }
         .windowToolbarStyle(.unified(showsTitle: false))
