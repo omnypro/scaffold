@@ -20,17 +20,37 @@ struct ContentView: View {
         height: 1080
     )
     @State private var selectedEngine: BrowserEngine = .webkit
+    @State private var backgroundImage: NSImage? = nil
 
     private let webViewPadding: CGFloat = 8
 
     var body: some View {
-        selectedEngine.createView(
-            urlString: $loadedURL,
-            consoleLogs: $consoleLogs
-        )
-        .frame(width: currentWindowSize.width, height: currentWindowSize.height)
-        .background(Color.black)
-        .cornerRadius(8)
+        ZStack {
+            // Background image layer
+            if let backgroundImage = backgroundImage {
+                Image(nsImage: backgroundImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(
+                        width: currentWindowSize.width,
+                        height: currentWindowSize.height
+                    )
+                    .clipped()
+                    .cornerRadius(8)
+            }
+
+            // WebView layer
+            selectedEngine.createView(
+                urlString: $loadedURL,
+                consoleLogs: $consoleLogs
+            )
+            .frame(
+                width: currentWindowSize.width,
+                height: currentWindowSize.height
+            )
+            .background(backgroundImage == nil ? Color.black : Color.clear)
+            .cornerRadius(8)
+        }
         .padding(
             EdgeInsets(
                 top: 0,
@@ -84,6 +104,20 @@ struct ContentView: View {
                 selectedEngine = engine
             }
         }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: Notification.Name("SetBackgroundImage")
+            )
+        ) { _ in
+            selectBackgroundImage()
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: Notification.Name("ClearBackgroundImage")
+            )
+        ) { _ in
+            backgroundImage = nil
+        }
         .toolbar {
             ToolbarItemGroup(placement: .principal) {
                 TextField("Enter URL or file path", text: $urlString)
@@ -122,6 +156,22 @@ struct ContentView: View {
                 } label: {
                     Image(systemName: "aspectratio")
                 }
+
+                Menu {
+                    Button("Set Background Image...") {
+                        selectBackgroundImage()
+                    }
+
+                    Button("Clear Background Image") {
+                        backgroundImage = nil
+                    }
+                    .disabled(backgroundImage == nil)
+                } label: {
+                    Image(
+                        systemName: backgroundImage != nil
+                            ? "photo.fill" : "photo"
+                    )
+                }
             }
         }
     }
@@ -158,6 +208,23 @@ struct ContentView: View {
                 )
             )
             window.center()
+        }
+    }
+
+    private func selectBackgroundImage() {
+        let panel = NSOpenPanel()
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        panel.allowedContentTypes = [.png, .jpeg, .gif, .webP]
+        panel.message = "Select a background image for your overlay development"
+
+        if panel.runModal() == .OK {
+            if let url = panel.url,
+                let image = NSImage(contentsOf: url)
+            {
+                backgroundImage = image
+            }
         }
     }
 }

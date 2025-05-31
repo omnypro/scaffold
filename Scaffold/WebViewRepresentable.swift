@@ -121,10 +121,10 @@ struct WebViewRepresentable: NSViewRepresentable {
             )
         }
 
-        // Set transparent background to prevent white flash
+        // Set transparent background
         webView.setValue(false, forKey: "drawsBackground")
         webView.setValue(
-            NSColor.windowBackgroundColor,
+            NSColor.clear,
             forKey: "backgroundColor"
         )
 

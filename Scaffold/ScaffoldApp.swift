@@ -51,6 +51,22 @@ struct ScaffoldApp: App {
                     }
                     .disabled(true)
                 }
+
+                Divider()
+
+                Button("Set Background Image...") {
+                    NotificationCenter.default.post(
+                        name: Notification.Name("SetBackgroundImage"),
+                        object: nil
+                    )
+                }
+
+                Button("Clear Background Image") {
+                    NotificationCenter.default.post(
+                        name: Notification.Name("ClearBackgroundImage"),
+                        object: nil
+                    )
+                }
             }
         }
         .windowToolbarStyle(.unified(showsTitle: false))
