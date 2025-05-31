@@ -39,18 +39,19 @@ struct ContentView: View {
                 }
                 
                 ToolbarItemGroup(placement: .automatic) {
-                    Menu("Window Size") {
+                    Text("\(Int(currentWindowSize.width), format: .number.grouping(.never))×\(Int(currentWindowSize.height), format: .number.grouping(.never))")
+                        .font(.system(size: 12, weight: .bold, design: .monospaced))
+                        .foregroundColor(.secondary)
+                    
+                    Menu {
                         ForEach(WindowSize.presets) { size in
-                            Button("\(size.name) (\(Int(size.width))×\(Int(size.height)))") {
+                            Button("\(size.name) (\(Int(size.width), format: .number.grouping(.never))×\(Int(size.height), format: .number.grouping(.never)))") {
                                 currentWindowSize = size
                                 setWindowSize(size)
                             }
                         }
-                    }
-                    
-                    Menu("Settings") {
-                        Toggle("Stay on Top", isOn: $windowSettings.stayOnTop)
-                        Toggle("Frameless", isOn: $windowSettings.isFrameless)
+                    } label: {
+                        Image(systemName: "aspectratio")
                     }
                 }
             }
