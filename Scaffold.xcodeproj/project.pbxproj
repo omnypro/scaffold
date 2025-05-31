@@ -27,7 +27,6 @@
 		E3166C592DEABF13001D5492 /* Scaffold.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Scaffold.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E3166C672DEABF14001D5492 /* ScaffoldTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScaffoldTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		E3166C712DEABF14001D5492 /* ScaffoldUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScaffoldUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		E3166C902DEB76A9001D5492 /* set-build-number.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "set-build-number.sh"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -93,7 +92,6 @@
 				E3166C6A2DEABF14001D5492 /* ScaffoldTests */,
 				E3166C742DEABF14001D5492 /* ScaffoldUITests */,
 				E3166C5A2DEABF13001D5492 /* Products */,
-				E3166C912DEB76A9001D5492 /* Scripts */,
 			);
 			sourceTree = "<group>";
 		};
@@ -107,14 +105,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		E3166C912DEB76A9001D5492 /* Scripts */ = {
-			isa = PBXGroup;
-			children = (
-				E3166C902DEB76A9001D5492 /* set-build-number.sh */,
-			);
-			path = Scripts;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -122,9 +112,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E3166C7B2DEABF14001D5492 /* Build configuration list for PBXNativeTarget "Scaffold" */;
 			buildPhases = (
+				E3166C8E2DEB766E001D5492 /* Set Build Number from Git */,
 				E3166C552DEABF13001D5492 /* Sources */,
 				E3166C562DEABF13001D5492 /* Frameworks */,
-				E3166C8E2DEB766E001D5492 /* Set Build Number from Git */,
 				E3166C572DEABF13001D5492 /* Resources */,
 			);
 			buildRules = (
@@ -258,6 +248,7 @@
 /* Begin PBXShellScriptBuildPhase section */
 		E3166C8E2DEB766E001D5492 /* Set Build Number from Git */ = {
 			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
 			files = (
 			);
@@ -272,7 +263,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Scripts/set-build-number.sh\"\n";
+			shellScript = "  # Get git info from the project directory\n  cd \"${PROJECT_DIR}\"\n\n  # Get commit count for build number\n  BUILD_NUMBER=$(git rev-list --count HEAD 2>/dev/null || echo \"0\")\n\n  # Get commit SHA for reference (optional)\n  GIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo \"unknown\")\n\n  # Check for uncommitted changes\n  if ! git diff --quiet HEAD 2>/dev/null; then\n      BUILD_NUMBER=\"${BUILD_NUMBER}+\"  # Add + for dirty builds\n  fi\n\n  echo \"Build number: $BUILD_NUMBER (commit: $GIT_SHA)\"\n\n  # Update the source Info.plist\n  SOURCE_PLIST=\"${PROJECT_DIR}/Scaffold/Info.plist\"\n  if [ -f \"$SOURCE_PLIST\" ]; then\n      # Set build number\n      /usr/libexec/PlistBuddy -c \"Add :CFBundleVersion string $BUILD_NUMBER\" \"$SOURCE_PLIST\" 2>/dev/null || \\\n      /usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $BUILD_NUMBER\" \"$SOURCE_PLIST\"\n\n      # Optionally store commit SHA\n      /usr/libexec/PlistBuddy -c \"Add :ScaffoldCommit string $GIT_SHA\" \"$SOURCE_PLIST\" 2>/dev/null || \\\n      /usr/libexec/PlistBuddy -c \"Set :ScaffoldCommit $GIT_SHA\" \"$SOURCE_PLIST\"\n  fi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -439,6 +430,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = GSPJH236WZ;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Scaffold/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Scaffold;
@@ -481,6 +473,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = GSPJH236WZ;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Scaffold/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Scaffold;
