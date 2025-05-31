@@ -7,6 +7,7 @@ struct ContentView: View {
     @StateObject private var windowViewModel = WindowViewModel()
     @StateObject private var consoleViewModel = ConsoleViewModel()
     @State private var selectedEngine: BrowserEngine = .webkit
+    @State private var showingErrorAlert = false
 
     private let webViewPadding: CGFloat = 8
 
@@ -63,24 +64,7 @@ struct ContentView: View {
                 for: Notification.Name("RefreshWebView")
             )
         ) { _ in
-            // Find WKWebView recursively
-            func findWebView(in view: NSView) -> WKWebView? {
-                if let webView = view as? WKWebView {
-                    return webView
-                }
-                for subview in view.subviews {
-                    if let found = findWebView(in: subview) {
-                        return found
-                    }
-                }
-                return nil
-            }
-
-            if let window = NSApp.windows.first,
-                let webView = findWebView(in: window.contentView!)
-            {
-                webView.reload()
-            }
+            refreshWebView()
         }
         .onReceive(
             NotificationCenter.default.publisher(
@@ -116,12 +100,16 @@ struct ContentView: View {
                 .onSubmit {
                     browserViewModel.loadContent()
                 }
+                .accessibilityLabel("URL input field")
+                .accessibilityHint("Enter a web URL or local file path and press Enter to load")
 
                 Button(action: {
                     refreshWebView()
                 }) {
                     Image(systemName: "arrow.clockwise")
                 }
+                .accessibilityLabel("Refresh")
+                .accessibilityHint("Reload the current page")
             }
 
             ToolbarItemGroup(placement: .automatic) {
@@ -134,37 +122,49 @@ struct ContentView: View {
                         Button(windowViewModel.menuItemText(for: size)) {
                             windowViewModel.setWindowSize(size)
                         }
+                        .accessibilityLabel("Set window size to \(size.name)")
                     }
                 } label: {
                     Image(systemName: "aspectratio")
                 }
+                .accessibilityLabel("Window size menu")
+                .accessibilityHint("Choose a preset window size")
 
                 Menu {
                     Button("Set Background Image...") {
                         windowViewModel.selectBackgroundImage()
                     }
+                    .accessibilityLabel("Set background image")
+                    .accessibilityHint("Choose an image to display behind the web content")
 
                     Button("Clear Background Image") {
                         windowViewModel.clearBackgroundImage()
                     }
                     .disabled(windowViewModel.backgroundImage == nil)
+                    .accessibilityLabel("Clear background image")
+                    .accessibilityHint("Remove the current background image")
                 } label: {
                     Image(
                         systemName: windowViewModel.backgroundImage != nil
                             ? "photo.fill" : "photo"
                     )
                 }
+                .accessibilityLabel("Background image menu")
+                .accessibilityHint(windowViewModel.backgroundImage != nil ? "Background image is set" : "No background image")
             }
         }
         .alert(
             "Error",
-            isPresented: .constant(browserViewModel.errorMessage != nil)
+            isPresented: $showingErrorAlert
         ) {
             Button("OK") {
                 browserViewModel.errorMessage = nil
             }
         } message: {
             Text(browserViewModel.errorMessage ?? "")
+        }
+        .onChange(of: browserViewModel.errorMessage) { _, newValue in
+            showingErrorAlert = newValue != nil
         }
     }
 
@@ -183,7 +183,8 @@ struct ContentView: View {
         }
 
         if let window = NSApp.windows.first,
-            let webView = findWebView(in: window.contentView!)
+           let contentView = window.contentView,
+           let webView = findWebView(in: contentView)
         {
             webView.reload()
         }

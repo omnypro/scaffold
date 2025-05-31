@@ -6,10 +6,10 @@ struct WebViewRepresentable: NSViewRepresentable {
     let consoleViewModel: ConsoleViewModel
 
     class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
-        var parent: WebViewRepresentable
+        let consoleViewModel: ConsoleViewModel
 
-        init(_ parent: WebViewRepresentable) {
-            self.parent = parent
+        init(consoleViewModel: ConsoleViewModel) {
+            self.consoleViewModel = consoleViewModel
         }
 
         func userContentController(
@@ -22,8 +22,8 @@ struct WebViewRepresentable: NSViewRepresentable {
                     let message = dict["message"] as? String
                 {
                     let logLevel = ConsoleLog.LogLevel(rawValue: level) ?? .log
-                    DispatchQueue.main.async {
-                        self.parent.consoleViewModel.addLog(
+                    DispatchQueue.main.async { [weak self] in
+                        self?.consoleViewModel.addLog(
                             message,
                             level: logLevel
                         )
@@ -91,7 +91,7 @@ struct WebViewRepresentable: NSViewRepresentable {
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(self)
+        Coordinator(consoleViewModel: consoleViewModel)
     }
 
     func makeNSView(context: Context) -> WKWebView {
@@ -144,7 +144,8 @@ struct WebViewRepresentable: NSViewRepresentable {
             // Handle local files
             let url: URL
             if trimmedURL.hasPrefix("file://") {
-                url = URL(string: trimmedURL)!
+                guard let fileURL = URL(string: trimmedURL) else { return }
+                url = fileURL
             } else {
                 url = URL(fileURLWithPath: trimmedURL)
             }
