@@ -30,8 +30,8 @@ class BrowserViewModel: ObservableObject {
         } else if isValidLocalPath(urlString) {
             loadedURL = urlString
         } else {
-            // Try adding https:// prefix
-            let urlWithScheme = "https://\(urlString)"
+            // Try adding http:// prefix
+            let urlWithScheme = "http://\(urlString)"
             if isValidURL(urlWithScheme) {
                 loadedURL = urlWithScheme
                 urlString = urlWithScheme

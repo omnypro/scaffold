@@ -165,8 +165,8 @@ struct WebViewRepresentable: NSViewRepresentable {
                 webView.load(request)
             }
         } else {
-            // Assume https:// if no protocol
-            let fullURL = "https://\(trimmedURL)"
+            // Assume http:// if no protocol
+            let fullURL = "http://\(trimmedURL)"
             if let url = URL(string: fullURL), currentURL != fullURL {
                 let request = URLRequest(url: url)
                 webView.load(request)
