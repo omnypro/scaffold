@@ -23,12 +23,6 @@ class WindowSettings: ObservableObject {
         }
     }
 
-    @Published var isFrameless: Bool = false {
-        didSet {
-            updateWindowStyle()
-        }
-    }
-
     private func updateWindowLevel() {
         if let window = NSApp.windows.first {
             window.level = stayOnTop ? .floating : .normal
@@ -37,17 +31,10 @@ class WindowSettings: ObservableObject {
 
     private func updateWindowStyle() {
         if let window = NSApp.windows.first {
-            if isFrameless {
-                window.styleMask.remove(.titled)
-                window.styleMask.remove(.closable)
-                window.styleMask.remove(.miniaturizable)
-                window.styleMask.remove(.resizable)
-            } else {
-                window.styleMask.insert(.titled)
-                window.styleMask.insert(.closable)
-                window.styleMask.insert(.miniaturizable)
-                window.styleMask.insert(.resizable)
-            }
+            window.styleMask.insert(.titled)
+            window.styleMask.insert(.closable)
+            window.styleMask.insert(.miniaturizable)
+            window.styleMask.insert(.resizable)
         }
     }
 }
