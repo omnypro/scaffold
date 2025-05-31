@@ -13,6 +13,9 @@ struct ScaffoldApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onAppear {
+                    NSWindow.allowsAutomaticWindowTabbing = false
+                }
         }
         .commands {
             CommandGroup(after: .newItem) {
