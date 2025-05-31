@@ -10,6 +10,8 @@ import SwiftUI
 
 @main
 struct ScaffoldApp: App {
+    @Environment(\.openWindow) private var openWindow
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
@@ -18,6 +20,11 @@ struct ScaffoldApp: App {
                 }
         }
         .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("About Scaffold") {
+                    openWindow(id: "about")
+                }
+            }
             CommandGroup(after: .newItem) {
                 Button("Open File...") {
                     NotificationCenter.default.post(
@@ -75,5 +82,12 @@ struct ScaffoldApp: App {
             }
         }
         .windowToolbarStyle(.unified(showsTitle: false))
+        
+        Window("About Scaffold", id: "about") {
+            AboutView()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 }
