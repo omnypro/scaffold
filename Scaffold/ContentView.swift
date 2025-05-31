@@ -16,9 +16,15 @@ struct ContentView: View {
     @StateObject private var windowSettings = WindowSettings()
     @State private var currentWindowSize = WindowSize(name: "1080p", width: 1920, height: 1080)
     
+    private let webViewPadding: CGFloat = 8
+    
     var body: some View {
         WebViewRepresentable(urlString: $loadedURL, consoleLogs: $consoleLogs)
             .frame(width: currentWindowSize.width, height: currentWindowSize.height)
+            .background(Color.black)
+            .cornerRadius(8)
+            .padding(webViewPadding)
+            .background(Color(NSColor.windowBackgroundColor))
             .onReceive(NotificationCenter.default.publisher(for: Notification.Name("OpenFile"))) { _ in
                 selectLocalFile()
             }
@@ -73,7 +79,9 @@ struct ContentView: View {
     private func setWindowSize(_ size: WindowSize) {
         // The WebView is now explicitly sized, so we just resize the window to fit
         if let window = NSApp.windows.first {
-            window.setContentSize(NSSize(width: size.width, height: size.height))
+            // Add padding to both dimensions to account for border
+            window.setContentSize(NSSize(width: size.width + (webViewPadding * 2), 
+                                         height: size.height + (webViewPadding * 2)))
             window.center()
         }
     }
