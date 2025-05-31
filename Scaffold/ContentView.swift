@@ -17,48 +17,41 @@ struct ContentView: View {
     @State private var currentWindowSize = WindowSize(name: "1080p", width: 1920, height: 1080)
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Toolbar
-            HStack {
-                TextField("Enter URL or file path", text: $urlString, onCommit: {
-                    loadContent()
-                })
-                .textFieldStyle(.roundedBorder)
-                
-                Button("Load") {
-                    loadContent()
-                }
-                
-                Button("Browse...") {
-                    selectLocalFile()
-                }
-                
-                Spacer()
-                
-                // Window Size Menu
-                Menu("Window Size") {
-                    ForEach(WindowSize.presets) { size in
-                        Button("\(size.name) (\(Int(size.width))×\(Int(size.height)))") {
-                            currentWindowSize = size
-                            setWindowSize(size)
-                        }
+        WebViewRepresentable(urlString: $loadedURL, consoleLogs: $consoleLogs)
+            .frame(width: currentWindowSize.width, height: currentWindowSize.height)
+            .toolbar {
+                ToolbarItemGroup(placement: .principal) {
+                    TextField("Enter URL or file path", text: $urlString, onCommit: {
+                        loadContent()
+                    })
+                    .textFieldStyle(.roundedBorder)
+                    .frame(minWidth: 300)
+                    
+                    Button("Load") {
+                        loadContent()
+                    }
+                    
+                    Button("Browse...") {
+                        selectLocalFile()
                     }
                 }
                 
-                // Settings Menu
-                Menu("Settings") {
-                    Toggle("Stay on Top", isOn: $windowSettings.stayOnTop)
-                    Toggle("Frameless", isOn: $windowSettings.isFrameless)
+                ToolbarItemGroup(placement: .automatic) {
+                    Menu("Window Size") {
+                        ForEach(WindowSize.presets) { size in
+                            Button("\(size.name) (\(Int(size.width))×\(Int(size.height)))") {
+                                currentWindowSize = size
+                                setWindowSize(size)
+                            }
+                        }
+                    }
+                    
+                    Menu("Settings") {
+                        Toggle("Stay on Top", isOn: $windowSettings.stayOnTop)
+                        Toggle("Frameless", isOn: $windowSettings.isFrameless)
+                    }
                 }
             }
-            .padding()
-            
-            Divider()
-            
-            // Main content area
-            WebViewRepresentable(urlString: $loadedURL, consoleLogs: $consoleLogs)
-                .frame(width: currentWindowSize.width, height: currentWindowSize.height)
-        }
     }
     
     private func loadContent() {
@@ -83,7 +76,7 @@ struct ContentView: View {
     private func setWindowSize(_ size: WindowSize) {
         // The WebView is now explicitly sized, so we just resize the window to fit
         if let window = NSApp.windows.first {
-            window.setContentSize(NSSize(width: size.width, height: size.height + 60)) // +60 for toolbar
+            window.setContentSize(NSSize(width: size.width, height: size.height))
             window.center()
         }
     }
