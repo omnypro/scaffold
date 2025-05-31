@@ -29,9 +29,22 @@
 		E3166C712DEABF14001D5492 /* ScaffoldUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ScaffoldUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E3166C892DEACB80001D5492 /* Exceptions for "Scaffold" folder in "Scaffold" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E3166C582DEABF13001D5492 /* Scaffold */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E3166C5B2DEABF13001D5492 /* Scaffold */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E3166C892DEACB80001D5492 /* Exceptions for "Scaffold" folder in "Scaffold" target */,
+			);
 			path = Scaffold;
 			sourceTree = "<group>";
 		};
@@ -394,6 +407,7 @@
 				DEVELOPMENT_TEAM = GSPJH236WZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Scaffold/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Scaffold;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -434,6 +448,7 @@
 				DEVELOPMENT_TEAM = GSPJH236WZ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Scaffold/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Scaffold;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
