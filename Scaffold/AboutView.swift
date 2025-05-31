@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct AboutView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.openURL) var openURL
+
     private let githubURL = URL(string: "https://github.com/omnypro/scaffold")
 
     private var build: String? {
@@ -84,11 +87,11 @@ struct AboutView: View {
 
                 if let copy = self.copyright {
                     Text(copy)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                         .font(.caption)
-                        .textSelection(.enabled)
                         .tint(.secondary)
                         .opacity(0.8)
-                        .multilineTextAlignment(.center)
                         .frame(maxWidth: .infinity)
                 }
             }
@@ -101,6 +104,11 @@ struct AboutView: View {
             VisualEffectBackground(material: .underWindowBackground)
                 .ignoresSafeArea()
         )
+        .focusable()
+        .focusEffectDisabled()
+        .onExitCommand {
+            dismiss()
+        }
     }
 
     private struct PropertyRow: View {
