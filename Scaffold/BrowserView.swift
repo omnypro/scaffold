@@ -8,9 +8,12 @@ protocol BrowserView: View {
 enum BrowserEngine: String, CaseIterable {
     case webkit = "WebKit"
     case chromium = "Chromium"
-    
+
     @ViewBuilder
-    func createView(urlString: Binding<String?>, consoleLogs: Binding<[ConsoleLog]>) -> some View {
+    func createView(
+        urlString: Binding<String?>,
+        consoleLogs: Binding<[ConsoleLog]>
+    ) -> some View {
         switch self {
         case .webkit:
             WebViewRepresentable(urlString: urlString, consoleLogs: consoleLogs)
