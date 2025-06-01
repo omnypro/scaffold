@@ -94,6 +94,14 @@ struct ScaffoldeApp: App {
                 .disabled(hasBackgroundImage != true)
 
                 Divider()
+
+                Button("Toggle Console") {
+                    NotificationCenter.default.post(
+                        name: Notification.Name("ToggleConsole"),
+                        object: nil
+                    )
+                }
+                .keyboardShortcut("J", modifiers: [.command, .option])
             }
         }
         .windowToolbarStyle(.unified(showsTitle: false))

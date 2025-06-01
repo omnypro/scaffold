@@ -6,8 +6,17 @@ struct ContentView: View {
     @StateObject private var browserViewModel = BrowserViewModel()
     @StateObject private var windowViewModel = WindowViewModel()
     @StateObject private var consoleViewModel = ConsoleViewModel()
+    @StateObject private var consoleWindowViewModel: ConsoleWindowViewModel
     @State private var selectedEngine: BrowserEngine = .webkit
     @State private var showingErrorAlert = false
+
+    init() {
+        let consoleVM = ConsoleViewModel()
+        _consoleViewModel = StateObject(wrappedValue: consoleVM)
+        _consoleWindowViewModel = StateObject(
+            wrappedValue: ConsoleWindowViewModel(consoleViewModel: consoleVM)
+        )
+    }
 
     private let webViewPadding: CGFloat = 8
 
@@ -103,6 +112,13 @@ struct ContentView: View {
         ) { _ in
             hardReloadWebView()
         }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: Notification.Name("ToggleConsole")
+            )
+        ) { _ in
+            consoleWindowViewModel.toggle()
+        }
         .toolbar {
             ToolbarItemGroup(placement: .principal) {
                 TextField(
@@ -129,6 +145,17 @@ struct ContentView: View {
             }
 
             ToolbarItemGroup(placement: .automatic) {
+                Button(action: {
+                    consoleWindowViewModel.toggle()
+                }) {
+                    Image(
+                        systemName: consoleWindowViewModel.isVisible
+                            ? "terminal.fill" : "terminal"
+                    )
+                }
+                .accessibilityLabel("Toggle console")
+                .accessibilityHint("Show or hide the console window")
+
                 Text(windowViewModel.sizeDisplayText)
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
                     .foregroundColor(.secondary)
