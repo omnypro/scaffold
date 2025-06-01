@@ -15,10 +15,12 @@ class WindowViewModel: ObservableObject {
 
     // MARK: - Constants
     private let webViewPadding: CGFloat = 8
+    private let windowPositionXKey = "SavedWindowPositionX"
+    private let windowPositionYKey = "SavedWindowPositionY"
     private let windowSizeNameKey = "SavedWindowSizeName"
     private let windowSizeWidthKey = "SavedWindowSizeWidth"
     private let windowSizeHeightKey = "SavedWindowSizeHeight"
-    
+
     // MARK: - Initialization
     init() {
         // Load saved window size or use default
@@ -48,7 +50,6 @@ class WindowViewModel: ObservableObject {
                     height: size.height + webViewPadding
                 )
             )
-            window.center()
         }
     }
 
@@ -92,7 +93,7 @@ class WindowViewModel: ObservableObject {
     func setupWindow() {
         if let window = NSApp.windows.first {
             window.titlebarAppearsTransparent = true
-            
+
             // Apply saved window size
             window.setContentSize(
                 NSSize(
@@ -100,39 +101,46 @@ class WindowViewModel: ObservableObject {
                     height: currentSize.height + webViewPadding
                 )
             )
-            window.center()
+
+            // Restore saved position or center the window
+            restoreWindowPosition(window)
+
+            // Set up position tracking
+            setupPositionTracking(window)
         }
     }
-    
+
     // MARK: - Private Methods
-    
+
     /// Saves the current window size to UserDefaults
     private func saveWindowSize() {
         UserDefaults.standard.set(currentSize.name, forKey: windowSizeNameKey)
         UserDefaults.standard.set(currentSize.width, forKey: windowSizeWidthKey)
-        UserDefaults.standard.set(currentSize.height, forKey: windowSizeHeightKey)
+        UserDefaults.standard.set(
+            currentSize.height,
+            forKey: windowSizeHeightKey
+        )
     }
-    
+
     /// Loads the saved window size from UserDefaults
     private static func loadSavedWindowSize() -> WindowSize {
         let defaults = UserDefaults.standard
-        
+
         // Check if we have saved values
         if let savedName = defaults.string(forKey: "SavedWindowSizeName") {
             let savedWidth = defaults.double(forKey: "SavedWindowSizeWidth")
             let savedHeight = defaults.double(forKey: "SavedWindowSizeHeight")
-            
+
             // If width and height are valid, use them
             if savedWidth > 0 && savedHeight > 0 {
                 // First check if it matches a preset
-                if let preset = WindowSize.presets.first(where: { 
-                    $0.name == savedName && 
-                    $0.width == CGFloat(savedWidth) && 
-                    $0.height == CGFloat(savedHeight) 
+                if let preset = WindowSize.presets.first(where: {
+                    $0.name == savedName && $0.width == CGFloat(savedWidth)
+                        && $0.height == CGFloat(savedHeight)
                 }) {
                     return preset
                 }
-                
+
                 // Otherwise create a custom size
                 return WindowSize(
                     name: savedName,
@@ -141,8 +149,71 @@ class WindowViewModel: ObservableObject {
                 )
             }
         }
-        
+
         // Default to 1080p
         return WindowSize(name: "1080p", width: 1920, height: 1080)
+    }
+
+    /// Sets up window position tracking
+    private func setupPositionTracking(_ window: NSWindow) {
+        // Create a notification observer for window movement
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.didMoveNotification,
+            object: window,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.saveWindowPosition(window)
+            }
+        }
+    }
+
+    /// Saves the current window position to UserDefaults
+    private func saveWindowPosition(_ window: NSWindow) {
+        let frame = window.frame
+        UserDefaults.standard.set(
+            Double(frame.origin.x),
+            forKey: windowPositionXKey
+        )
+        UserDefaults.standard.set(
+            Double(frame.origin.y),
+            forKey: windowPositionYKey
+        )
+    }
+
+    /// Restores the window position from UserDefaults
+    private func restoreWindowPosition(_ window: NSWindow) {
+        let defaults = UserDefaults.standard
+        let savedX = defaults.double(forKey: windowPositionXKey)
+        let savedY = defaults.double(forKey: windowPositionYKey)
+
+        // Check if we have saved position values
+        if savedX != 0 || savedY != 0 {
+            let savedOrigin = NSPoint(x: savedX, y: savedY)
+            let newFrame = NSRect(origin: savedOrigin, size: window.frame.size)
+
+            // Verify the position is visible on current screen configuration
+            if isFrameVisible(newFrame) {
+                window.setFrameOrigin(savedOrigin)
+            } else {
+                // If not visible, center the window
+                window.center()
+            }
+        } else {
+            // No saved position, center the window
+            window.center()
+        }
+    }
+
+    /// Checks if a frame is visible on any screen
+    private func isFrameVisible(_ frame: NSRect) -> Bool {
+        for screen in NSScreen.screens {
+            // Check if at least 100x100 pixels of the window is visible on this screen
+            let visibleArea = screen.visibleFrame.intersection(frame)
+            if visibleArea.width >= 100 && visibleArea.height >= 100 {
+                return true
+            }
+        }
+        return false
     }
 }
