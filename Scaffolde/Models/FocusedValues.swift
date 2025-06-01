@@ -15,7 +15,7 @@ extension FocusedValues {
         get { self[BackgroundImageStateKey.self] }
         set { self[BackgroundImageStateKey.self] = newValue }
     }
-    
+
     var selectedBrowserEngine: BrowserEngine? {
         get { self[SelectedBrowserEngineKey.self] }
         set { self[SelectedBrowserEngineKey.self] = newValue }
