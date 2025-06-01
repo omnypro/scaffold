@@ -5,6 +5,8 @@ import SwiftUI
 struct ScaffoldeApp: App {
     @Environment(\.openWindow) private var openWindow
     @FocusedValue(\.hasBackgroundImage) private var hasBackgroundImage: Bool?
+    @FocusedValue(\.selectedBrowserEngine) private var selectedEngine:
+        BrowserEngine?
 
     var body: some Scene {
         WindowGroup {
@@ -37,7 +39,7 @@ struct ScaffoldeApp: App {
                     )
                 }
                 .keyboardShortcut("R", modifiers: .command)
-                
+
                 Button("Hard Reload") {
                     NotificationCenter.default.post(
                         name: Notification.Name("HardReloadWebView"),
@@ -55,6 +57,7 @@ struct ScaffoldeApp: App {
                             object: BrowserEngine.webkit
                         )
                     }
+
                     Button("Chromium (Coming Soon)") {
                         NotificationCenter.default.post(
                             name: Notification.Name("SetEngine"),
@@ -72,7 +75,7 @@ struct ScaffoldeApp: App {
                         object: nil
                     )
                 }
-                
+
                 Button("Toggle Background Image") {
                     NotificationCenter.default.post(
                         name: Notification.Name("ToggleBackgroundImage"),
@@ -81,7 +84,7 @@ struct ScaffoldeApp: App {
                 }
                 .disabled(hasBackgroundImage != true)
                 .keyboardShortcut("B", modifiers: .command)
-                
+
                 Button("Clear Background Image") {
                     NotificationCenter.default.post(
                         name: Notification.Name("ClearBackgroundImage"),

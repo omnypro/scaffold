@@ -51,7 +51,8 @@ class WindowViewModel: ObservableObject {
         panel.canChooseFiles = true
         panel.allowedContentTypes = [.png, .jpeg, .gif, .webP]
         panel.title = "Select Background Image"
-        panel.message = "Select an image to serve as the backdrop for the browser window."
+        panel.message =
+            "Select an image to serve as the backdrop for the browser window."
 
         if panel.runModal() == .OK {
             if let url = panel.url,
@@ -67,7 +68,7 @@ class WindowViewModel: ObservableObject {
         previousBackgroundImage = backgroundImage
         backgroundImage = nil
     }
-    
+
     /// Toggles the background image on/off
     func toggleBackgroundImage() {
         if backgroundImage != nil {

@@ -115,7 +115,9 @@ struct ContentView: View {
                     browserViewModel.loadContent()
                 }
                 .accessibilityLabel("URL input field")
-                .accessibilityHint("Enter a web URL or local file path and press Enter to load")
+                .accessibilityHint(
+                    "Enter a web URL or local file path and press Enter to load"
+                )
 
                 Button(action: {
                     refreshWebView()
@@ -149,7 +151,9 @@ struct ContentView: View {
                         windowViewModel.selectBackgroundImage()
                     }
                     .accessibilityLabel("Set background image")
-                    .accessibilityHint("Choose an image to display behind the web content")
+                    .accessibilityHint(
+                        "Choose an image to display behind the web content"
+                    )
 
                     Button("Toggle Background Image") {
                         windowViewModel.toggleBackgroundImage()
@@ -157,7 +161,9 @@ struct ContentView: View {
                     .disabled(windowViewModel.backgroundImage == nil)
                     .keyboardShortcut("B", modifiers: .command)
                     .accessibilityLabel("Toggle background image")
-                    .accessibilityHint("Toggle the visibility of the background image")
+                    .accessibilityHint(
+                        "Toggle the visibility of the background image"
+                    )
 
                     Button("Clear Background Image") {
                         windowViewModel.clearBackgroundImage()
@@ -172,7 +178,10 @@ struct ContentView: View {
                     )
                 }
                 .accessibilityLabel("Background image menu")
-                .accessibilityHint(windowViewModel.backgroundImage != nil ? "Background image is set" : "No background image")
+                .accessibilityHint(
+                    windowViewModel.backgroundImage != nil
+                        ? "Background image is set" : "No background image"
+                )
             }
         }
         .alert(
@@ -188,7 +197,11 @@ struct ContentView: View {
         .onChange(of: browserViewModel.errorMessage) { _, newValue in
             showingErrorAlert = newValue != nil
         }
-        .focusedSceneValue(\.hasBackgroundImage, windowViewModel.backgroundImage != nil)
+        .focusedSceneValue(
+            \.hasBackgroundImage,
+            windowViewModel.backgroundImage != nil
+        )
+        .focusedSceneValue(\.selectedBrowserEngine, selectedEngine)
     }
 
     private func refreshWebView() {
@@ -206,13 +219,13 @@ struct ContentView: View {
         }
 
         if let window = NSApp.windows.first,
-           let contentView = window.contentView,
-           let webView = findWebView(in: contentView)
+            let contentView = window.contentView,
+            let webView = findWebView(in: contentView)
         {
             webView.reload()
         }
     }
-    
+
     private func hardReloadWebView() {
         // Find WKWebView recursively
         func findWebView(in view: NSView) -> WKWebView? {
@@ -228,8 +241,8 @@ struct ContentView: View {
         }
 
         if let window = NSApp.windows.first,
-           let contentView = window.contentView,
-           let webView = findWebView(in: contentView)
+            let contentView = window.contentView,
+            let webView = findWebView(in: contentView)
         {
             // Hard reload bypasses cache
             webView.reloadFromOrigin()
