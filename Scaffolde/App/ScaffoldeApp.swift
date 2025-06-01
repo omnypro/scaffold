@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct ScaffoldeApp: App {
     @Environment(\.openWindow) private var openWindow
+    @FocusedValue(\.hasBackgroundImage) private var hasBackgroundImage: Bool?
 
     var body: some Scene {
         WindowGroup {
@@ -36,6 +37,14 @@ struct ScaffoldeApp: App {
                     )
                 }
                 .keyboardShortcut("R", modifiers: .command)
+                
+                Button("Hard Reload") {
+                    NotificationCenter.default.post(
+                        name: Notification.Name("HardReloadWebView"),
+                        object: nil
+                    )
+                }
+                .keyboardShortcut("R", modifiers: [.command, .shift])
 
                 Divider()
 
@@ -63,13 +72,23 @@ struct ScaffoldeApp: App {
                         object: nil
                     )
                 }
-
+                
+                Button("Toggle Background Image") {
+                    NotificationCenter.default.post(
+                        name: Notification.Name("ToggleBackgroundImage"),
+                        object: nil
+                    )
+                }
+                .disabled(hasBackgroundImage != true)
+                .keyboardShortcut("B", modifiers: .command)
+                
                 Button("Clear Background Image") {
                     NotificationCenter.default.post(
                         name: Notification.Name("ClearBackgroundImage"),
                         object: nil
                     )
                 }
+                .disabled(hasBackgroundImage != true)
 
                 Divider()
             }

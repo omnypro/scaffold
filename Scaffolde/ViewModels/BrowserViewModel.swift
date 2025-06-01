@@ -74,6 +74,17 @@ class BrowserViewModel: ObservableObject {
             self?.loadedURL = currentURL
         }
     }
+    
+    /// Performs a hard reload (bypass cache)
+    func hardReload() {
+        guard loadedURL != nil else { return }
+        
+        // Will be handled by WebView with reloadFromOrigin
+        NotificationCenter.default.post(
+            name: Notification.Name("HardReloadWebView"),
+            object: nil
+        )
+    }
 
     /// Clears the current URL and loaded content
     func clearContent() {

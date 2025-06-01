@@ -11,6 +11,7 @@ class WindowViewModel: ObservableObject {
         height: 1080
     )
     @Published var backgroundImage: NSImage? = nil
+    private var previousBackgroundImage: NSImage? = nil
 
     // MARK: - Constants
     private let webViewPadding: CGFloat = 8
@@ -63,7 +64,18 @@ class WindowViewModel: ObservableObject {
 
     /// Clears the current background image
     func clearBackgroundImage() {
+        previousBackgroundImage = backgroundImage
         backgroundImage = nil
+    }
+    
+    /// Toggles the background image on/off
+    func toggleBackgroundImage() {
+        if backgroundImage != nil {
+            previousBackgroundImage = backgroundImage
+            backgroundImage = nil
+        } else if let previous = previousBackgroundImage {
+            backgroundImage = previous
+        }
     }
 
     /// Configures the window appearance on initialization

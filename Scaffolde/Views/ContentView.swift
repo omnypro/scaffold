@@ -89,6 +89,20 @@ struct ContentView: View {
         ) { _ in
             windowViewModel.clearBackgroundImage()
         }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: Notification.Name("ToggleBackgroundImage")
+            )
+        ) { _ in
+            windowViewModel.toggleBackgroundImage()
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: Notification.Name("HardReloadWebView")
+            )
+        ) { _ in
+            hardReloadWebView()
+        }
         .toolbar {
             ToolbarItemGroup(placement: .principal) {
                 TextField(
@@ -137,6 +151,14 @@ struct ContentView: View {
                     .accessibilityLabel("Set background image")
                     .accessibilityHint("Choose an image to display behind the web content")
 
+                    Button("Toggle Background Image") {
+                        windowViewModel.toggleBackgroundImage()
+                    }
+                    .disabled(windowViewModel.backgroundImage == nil)
+                    .keyboardShortcut("B", modifiers: .command)
+                    .accessibilityLabel("Toggle background image")
+                    .accessibilityHint("Toggle the visibility of the background image")
+
                     Button("Clear Background Image") {
                         windowViewModel.clearBackgroundImage()
                     }
@@ -166,6 +188,7 @@ struct ContentView: View {
         .onChange(of: browserViewModel.errorMessage) { _, newValue in
             showingErrorAlert = newValue != nil
         }
+        .focusedSceneValue(\.hasBackgroundImage, windowViewModel.backgroundImage != nil)
     }
 
     private func refreshWebView() {
@@ -187,6 +210,29 @@ struct ContentView: View {
            let webView = findWebView(in: contentView)
         {
             webView.reload()
+        }
+    }
+    
+    private func hardReloadWebView() {
+        // Find WKWebView recursively
+        func findWebView(in view: NSView) -> WKWebView? {
+            if let webView = view as? WKWebView {
+                return webView
+            }
+            for subview in view.subviews {
+                if let found = findWebView(in: subview) {
+                    return found
+                }
+            }
+            return nil
+        }
+
+        if let window = NSApp.windows.first,
+           let contentView = window.contentView,
+           let webView = findWebView(in: contentView)
+        {
+            // Hard reload bypasses cache
+            webView.reloadFromOrigin()
         }
     }
 }
