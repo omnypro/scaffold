@@ -5,16 +5,25 @@ import Foundation
 @MainActor
 class WindowViewModel: ObservableObject {
     // MARK: - Published Properties
-    @Published var currentSize = WindowSize(
-        name: "1080p",
-        width: 1920,
-        height: 1080
-    )
+    @Published var currentSize: WindowSize {
+        didSet {
+            saveWindowSize()
+        }
+    }
     @Published var backgroundImage: NSImage? = nil
     private var previousBackgroundImage: NSImage? = nil
 
     // MARK: - Constants
     private let webViewPadding: CGFloat = 8
+    private let windowSizeNameKey = "SavedWindowSizeName"
+    private let windowSizeWidthKey = "SavedWindowSizeWidth"
+    private let windowSizeHeightKey = "SavedWindowSizeHeight"
+    
+    // MARK: - Initialization
+    init() {
+        // Load saved window size or use default
+        self.currentSize = Self.loadSavedWindowSize()
+    }
 
     // MARK: - Computed Properties
     var sizeDisplayText: String {
@@ -83,6 +92,57 @@ class WindowViewModel: ObservableObject {
     func setupWindow() {
         if let window = NSApp.windows.first {
             window.titlebarAppearsTransparent = true
+            
+            // Apply saved window size
+            window.setContentSize(
+                NSSize(
+                    width: currentSize.width + webViewPadding,
+                    height: currentSize.height + webViewPadding
+                )
+            )
+            window.center()
         }
+    }
+    
+    // MARK: - Private Methods
+    
+    /// Saves the current window size to UserDefaults
+    private func saveWindowSize() {
+        UserDefaults.standard.set(currentSize.name, forKey: windowSizeNameKey)
+        UserDefaults.standard.set(currentSize.width, forKey: windowSizeWidthKey)
+        UserDefaults.standard.set(currentSize.height, forKey: windowSizeHeightKey)
+    }
+    
+    /// Loads the saved window size from UserDefaults
+    private static func loadSavedWindowSize() -> WindowSize {
+        let defaults = UserDefaults.standard
+        
+        // Check if we have saved values
+        if let savedName = defaults.string(forKey: "SavedWindowSizeName") {
+            let savedWidth = defaults.double(forKey: "SavedWindowSizeWidth")
+            let savedHeight = defaults.double(forKey: "SavedWindowSizeHeight")
+            
+            // If width and height are valid, use them
+            if savedWidth > 0 && savedHeight > 0 {
+                // First check if it matches a preset
+                if let preset = WindowSize.presets.first(where: { 
+                    $0.name == savedName && 
+                    $0.width == CGFloat(savedWidth) && 
+                    $0.height == CGFloat(savedHeight) 
+                }) {
+                    return preset
+                }
+                
+                // Otherwise create a custom size
+                return WindowSize(
+                    name: savedName,
+                    width: CGFloat(savedWidth),
+                    height: CGFloat(savedHeight)
+                )
+            }
+        }
+        
+        // Default to 1080p
+        return WindowSize(name: "1080p", width: 1920, height: 1080)
     }
 }
