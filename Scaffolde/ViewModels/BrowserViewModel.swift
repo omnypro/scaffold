@@ -9,6 +9,7 @@ class BrowserViewModel: ObservableObject {
     @Published var urlString: String = ""
     @Published var loadedURL: String? = nil
     @Published var isLoading: Bool = false
+    @Published var loadingProgress: Double = 0.0
     @Published var errorMessage: String? = nil
 
     // MARK: - Public Methods

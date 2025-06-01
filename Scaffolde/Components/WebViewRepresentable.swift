@@ -4,12 +4,35 @@ import WebKit
 struct WebViewRepresentable: NSViewRepresentable {
     @Binding var urlString: String?
     let consoleViewModel: ConsoleViewModel
+    let browserViewModel: BrowserViewModel
 
     class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         let consoleViewModel: ConsoleViewModel
+        let browserViewModel: BrowserViewModel
+        private var progressObserver: NSKeyValueObservation?
 
-        init(consoleViewModel: ConsoleViewModel) {
+        init(
+            consoleViewModel: ConsoleViewModel,
+            browserViewModel: BrowserViewModel
+        ) {
             self.consoleViewModel = consoleViewModel
+            self.browserViewModel = browserViewModel
+        }
+
+        func setupProgressObserver(for webView: WKWebView) {
+            progressObserver = webView.observe(
+                \.estimatedProgress,
+                options: [.new]
+            ) { [weak self] webView, _ in
+                DispatchQueue.main.async {
+                    self?.browserViewModel.loadingProgress =
+                        webView.estimatedProgress
+                }
+            }
+        }
+
+        deinit {
+            progressObserver?.invalidate()
         }
 
         func userContentController(
@@ -32,8 +55,27 @@ struct WebViewRepresentable: NSViewRepresentable {
             }
         }
 
+        func webView(
+            _ webView: WKWebView,
+            didStartProvisionalNavigation navigation: WKNavigation!
+        ) {
+            DispatchQueue.main.async { [weak self] in
+                self?.browserViewModel.isLoading = true
+                self?.browserViewModel.loadingProgress = 0.0
+            }
+        }
+
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!)
         {
+            DispatchQueue.main.async { [weak self] in
+                self?.browserViewModel.loadingProgress = 1.0
+
+                // Delay hiding to show completion
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    self?.browserViewModel.isLoading = false
+                    self?.browserViewModel.loadingProgress = 0.0
+                }
+            }
             // Inject JavaScript to capture console logs
             let js = """
                 (function() {
@@ -88,10 +130,35 @@ struct WebViewRepresentable: NSViewRepresentable {
                 }
             }
         }
+
+        func webView(
+            _ webView: WKWebView,
+            didFail navigation: WKNavigation!,
+            withError error: Error
+        ) {
+            DispatchQueue.main.async { [weak self] in
+                self?.browserViewModel.isLoading = false
+                self?.browserViewModel.loadingProgress = 0.0
+            }
+        }
+
+        func webView(
+            _ webView: WKWebView,
+            didFailProvisionalNavigation navigation: WKNavigation!,
+            withError error: Error
+        ) {
+            DispatchQueue.main.async { [weak self] in
+                self?.browserViewModel.isLoading = false
+                self?.browserViewModel.loadingProgress = 0.0
+            }
+        }
     }
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(consoleViewModel: consoleViewModel)
+        Coordinator(
+            consoleViewModel: consoleViewModel,
+            browserViewModel: browserViewModel
+        )
     }
 
     func makeNSView(context: Context) -> WKWebView {
@@ -109,6 +176,9 @@ struct WebViewRepresentable: NSViewRepresentable {
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
+
+        // Set up progress observer
+        context.coordinator.setupProgressObserver(for: webView)
 
         // Enable developer extras (inspector)
         if webView.configuration.preferences.responds(

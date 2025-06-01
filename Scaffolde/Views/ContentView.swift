@@ -38,7 +38,8 @@ struct ContentView: View {
             // WebView layer
             selectedEngine.createView(
                 urlString: $browserViewModel.loadedURL,
-                consoleViewModel: consoleViewModel
+                consoleViewModel: consoleViewModel,
+                browserViewModel: browserViewModel
             )
             .frame(
                 width: windowViewModel.currentSize.width,
@@ -58,6 +59,26 @@ struct ContentView: View {
                 trailing: webViewPadding
             )
         )
+        .overlay(alignment: .bottom) {
+            if browserViewModel.isLoading {
+                GeometryReader { geometry in
+                    Capsule()
+                        .fill(Color.accentColor)
+                        .frame(
+                            width: geometry.size.width
+                                * browserViewModel.loadingProgress,
+                            height: 4
+                        )
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(height: 4)
+                .padding(.horizontal, webViewPadding)
+                .animation(
+                    .easeInOut(duration: 0.2),
+                    value: browserViewModel.loadingProgress
+                )
+            }
+        }
         .onAppear {
             windowViewModel.setupWindow()
         }
