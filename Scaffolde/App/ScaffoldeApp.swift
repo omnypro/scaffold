@@ -102,6 +102,24 @@ struct ScaffoldeApp: App {
                     )
                 }
                 .keyboardShortcut("J", modifiers: [.command, .option])
+                
+                Divider()
+                
+                Button("Focus URL Bar") {
+                    NotificationCenter.default.post(
+                        name: Notification.Name("FocusURLBar"),
+                        object: nil
+                    )
+                }
+                .keyboardShortcut("L", modifiers: .command)
+                
+                Button("Stop Loading") {
+                    NotificationCenter.default.post(
+                        name: Notification.Name("StopLoading"),
+                        object: nil
+                    )
+                }
+                .keyboardShortcut(.escape, modifiers: [])
             }
         }
         .windowToolbarStyle(.unified(showsTitle: false))

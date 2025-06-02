@@ -8,6 +8,7 @@ struct ContentView: View {
     @StateObject private var consoleViewModel = ConsoleViewModel()
     @StateObject private var consoleWindowViewModel: ConsoleWindowViewModel
     @State private var selectedEngine: BrowserEngine = .webkit
+    @FocusState private var isURLFieldFocused: Bool
 
     init() {
         let consoleVM = ConsoleViewModel()
@@ -136,6 +137,31 @@ struct ContentView: View {
         ) { _ in
             consoleWindowViewModel.toggle()
         }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: Notification.Name("FocusURLBar")
+            )
+        ) { _ in
+            isURLFieldFocused = true
+            DispatchQueue.main.async {
+                if let window = NSApp.keyWindow,
+                   let fieldEditor = window.fieldEditor(false, for: nil) {
+                    fieldEditor.selectAll(nil)
+                }
+            }
+        }
+        .onReceive(
+            NotificationCenter.default.publisher(
+                for: Notification.Name("StopLoading")
+            )
+        ) { _ in
+            if isURLFieldFocused {
+                browserViewModel.urlString = ""
+                isURLFieldFocused = false
+            } else if browserViewModel.isLoading {
+                stopLoading()
+            }
+        }
         .toolbar {
             ToolbarItemGroup(placement: .principal) {
                 TextField(
@@ -147,6 +173,7 @@ struct ContentView: View {
                 .onSubmit {
                     browserViewModel.loadContent()
                 }
+                .focused($isURLFieldFocused)
                 .accessibilityLabel("URL input field")
                 .accessibilityHint(
                     "Enter a web URL or local file path and press Enter to load"
@@ -274,6 +301,27 @@ struct ContentView: View {
             let webView = findWebView(in: contentView)
         {
             webView.reloadFromOrigin()
+        }
+    }
+    
+    private func stopLoading() {
+        func findWebView(in view: NSView) -> WKWebView? {
+            if let webView = view as? WKWebView {
+                return webView
+            }
+            for subview in view.subviews {
+                if let found = findWebView(in: subview) {
+                    return found
+                }
+            }
+            return nil
+        }
+        
+        if let window = NSApp.windows.first,
+           let contentView = window.contentView,
+           let webView = findWebView(in: contentView) {
+            webView.stopLoading()
+            browserViewModel.isLoading = false
         }
     }
 }
