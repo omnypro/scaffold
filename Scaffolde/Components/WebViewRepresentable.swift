@@ -2,7 +2,6 @@ import SwiftUI
 import WebKit
 
 struct WebViewRepresentable: NSViewRepresentable {
-    @Binding var urlString: String?
     let consoleViewModel: ConsoleViewModel
     let browserViewModel: BrowserViewModel
 
@@ -10,6 +9,7 @@ struct WebViewRepresentable: NSViewRepresentable {
         let consoleViewModel: ConsoleViewModel
         let browserViewModel: BrowserViewModel
         private var progressObserver: NSKeyValueObservation?
+        private var webView: WKWebView?
 
         init(
             consoleViewModel: ConsoleViewModel,
@@ -20,6 +20,7 @@ struct WebViewRepresentable: NSViewRepresentable {
         }
 
         func setupProgressObserver(for webView: WKWebView) {
+            self.webView = webView
             progressObserver = webView.observe(
                 \.estimatedProgress,
                 options: [.new]
@@ -27,6 +28,18 @@ struct WebViewRepresentable: NSViewRepresentable {
                 DispatchQueue.main.async {
                     self?.browserViewModel.loadingProgress =
                         webView.estimatedProgress
+                }
+            }
+        }
+        
+        func performNavigation(_ request: URLRequest) {
+            guard let webView = webView else { return }
+            
+            if let url = request.url {
+                if url.isFileURL {
+                    webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+                } else {
+                    webView.load(request)
                 }
             }
         }
@@ -69,14 +82,16 @@ struct WebViewRepresentable: NSViewRepresentable {
         {
             DispatchQueue.main.async { [weak self] in
                 self?.browserViewModel.loadingProgress = 1.0
+                
+                if let url = webView.url {
+                    self?.browserViewModel.didNavigate(to: url)
+                }
 
-                // Delay hiding to show completion
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                     self?.browserViewModel.isLoading = false
                     self?.browserViewModel.loadingProgress = 0.0
                 }
             }
-            // Inject JavaScript to capture console logs
             let js = """
                 (function() {
                     const originalLog = console.log;
@@ -164,11 +179,9 @@ struct WebViewRepresentable: NSViewRepresentable {
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
 
-        // Enable local file access
         config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
         config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
 
-        // Add script message handler for console logs
         config.userContentController.add(
             context.coordinator,
             name: "consoleLog"
@@ -177,10 +190,17 @@ struct WebViewRepresentable: NSViewRepresentable {
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
 
-        // Set up progress observer
         context.coordinator.setupProgressObserver(for: webView)
+        
+        Task { @MainActor in
+            for await _ in browserViewModel.$navigationID.values {
+                if let request = browserViewModel.navigationRequest {
+                    context.coordinator.performNavigation(request)
+                    browserViewModel.navigationRequest = nil
+                }
+            }
+        }
 
-        // Enable developer extras (inspector)
         if webView.configuration.preferences.responds(
             to: NSSelectorFromString("developerExtrasEnabled")
         ) {
@@ -190,7 +210,6 @@ struct WebViewRepresentable: NSViewRepresentable {
             )
         }
 
-        // Set transparent background
         webView.setValue(false, forKey: "drawsBackground")
         webView.setValue(
             NSColor.clear,
@@ -201,46 +220,5 @@ struct WebViewRepresentable: NSViewRepresentable {
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
-        guard let urlString = urlString else { return }
-        let trimmedURL = urlString.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
-        guard !trimmedURL.isEmpty else { return }
-
-        // Check if we need to load a new URL
-        let currentURL = webView.url?.absoluteString ?? ""
-
-        if trimmedURL.hasPrefix("file://") || trimmedURL.hasPrefix("/") {
-            // Handle local files
-            let url: URL
-            if trimmedURL.hasPrefix("file://") {
-                guard let fileURL = URL(string: trimmedURL) else { return }
-                url = fileURL
-            } else {
-                url = URL(fileURLWithPath: trimmedURL)
-            }
-
-            if currentURL != url.absoluteString {
-                webView.loadFileURL(
-                    url,
-                    allowingReadAccessTo: url.deletingLastPathComponent()
-                )
-            }
-        } else if trimmedURL.hasPrefix("http://")
-            || trimmedURL.hasPrefix("https://")
-        {
-            // Handle web URLs
-            if let url = URL(string: trimmedURL), currentURL != trimmedURL {
-                let request = URLRequest(url: url)
-                webView.load(request)
-            }
-        } else {
-            // Assume http:// if no protocol
-            let fullURL = "http://\(trimmedURL)"
-            if let url = URL(string: fullURL), currentURL != fullURL {
-                let request = URLRequest(url: url)
-                webView.load(request)
-            }
-        }
     }
 }

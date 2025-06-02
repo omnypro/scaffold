@@ -22,7 +22,6 @@ struct ContentView: View {
 
     var body: some View {
         ZStack {
-            // Background image layer
             if let backgroundImage = windowViewModel.backgroundImage {
                 Image(nsImage: backgroundImage)
                     .resizable()
@@ -35,9 +34,7 @@ struct ContentView: View {
                     .cornerRadius(8)
             }
 
-            // WebView layer
             selectedEngine.createView(
-                urlString: $browserViewModel.loadedURL,
                 consoleViewModel: consoleViewModel,
                 browserViewModel: browserViewModel
             )
@@ -253,7 +250,6 @@ struct ContentView: View {
     }
 
     private func refreshWebView() {
-        // Find WKWebView recursively
         func findWebView(in view: NSView) -> WKWebView? {
             if let webView = view as? WKWebView {
                 return webView
@@ -275,7 +271,6 @@ struct ContentView: View {
     }
 
     private func hardReloadWebView() {
-        // Find WKWebView recursively
         func findWebView(in view: NSView) -> WKWebView? {
             if let webView = view as? WKWebView {
                 return webView
@@ -292,7 +287,6 @@ struct ContentView: View {
             let contentView = window.contentView,
             let webView = findWebView(in: contentView)
         {
-            // Hard reload bypasses cache
             webView.reloadFromOrigin()
         }
     }

@@ -11,19 +11,16 @@ enum BrowserEngine: String, CaseIterable {
 
     @ViewBuilder
     func createView(
-        urlString: Binding<String?>,
         consoleViewModel: ConsoleViewModel,
         browserViewModel: BrowserViewModel
     ) -> some View {
         switch self {
         case .webkit:
             WebViewRepresentable(
-                urlString: urlString,
                 consoleViewModel: consoleViewModel,
                 browserViewModel: browserViewModel
             )
         case .chromium:
-            // Future: ChromiumViewRepresentable(urlString: urlString, consoleViewModel: consoleViewModel)
             Text("Chromium support coming soon")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color.gray.opacity(0.1))
