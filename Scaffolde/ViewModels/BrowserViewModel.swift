@@ -10,7 +10,7 @@ class BrowserViewModel: ObservableObject {
     @Published var currentURL: URL? = nil
     @Published var isLoading: Bool = false
     @Published var loadingProgress: Double = 0.0
-    @Published var errorMessage: String? = nil
+    @Published var navigationError: Error? = nil
     
     @Published var navigationRequest: URLRequest? = nil
     @Published var navigationID = UUID()
@@ -21,16 +21,20 @@ class BrowserViewModel: ObservableObject {
     func loadContent() {
         let trimmedString = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedString.isEmpty else {
-            errorMessage = "URL cannot be empty"
             return
         }
 
-        errorMessage = nil
+        navigationError = nil
         
         if let url = parseURL(from: trimmedString) {
             navigate(to: url)
         } else {
-            errorMessage = "Invalid URL or file path"
+            let error = NSError(
+                domain: "Scaffolde",
+                code: NSURLErrorBadURL,
+                userInfo: [NSLocalizedDescriptionKey: "Invalid URL or file path"]
+            )
+            navigationFailed(with: error)
         }
     }
     
@@ -77,7 +81,6 @@ class BrowserViewModel: ObservableObject {
             if let url = panel.url {
                 urlString = url.path
                 navigate(to: url)
-                errorMessage = nil
             }
         }
     }
@@ -103,7 +106,7 @@ class BrowserViewModel: ObservableObject {
         urlString = ""
         currentURL = nil
         navigationRequest = nil
-        errorMessage = nil
+        navigationError = nil
         isLoading = false
     }
     
@@ -111,6 +114,45 @@ class BrowserViewModel: ObservableObject {
     func didNavigate(to url: URL) {
         currentURL = url
         urlString = url.absoluteString
+        navigationError = nil
+    }
+    
+    /// Called when navigation fails
+    func navigationFailed(with error: Error) {
+        isLoading = false
+        loadingProgress = 0.0
+        navigationError = error
+    }
+    
+    /// Convert NSError codes to user-friendly messages
+    func errorDescription(for error: Error) -> String {
+        let nsError = error as NSError
+        
+        switch nsError.code {
+        case NSURLErrorCannotFindHost:
+            return "Server not found. Check the URL and try again."
+        case NSURLErrorCannotConnectToHost:
+            return "Can't connect to the server."
+        case NSURLErrorNotConnectedToInternet:
+            return "No internet connection."
+        case NSURLErrorTimedOut:
+            return "The connection timed out."
+        case NSURLErrorNetworkConnectionLost:
+            return "Network connection was lost."
+        case NSURLErrorServerCertificateHasBadDate,
+             NSURLErrorServerCertificateUntrusted,
+             NSURLErrorServerCertificateHasUnknownRoot,
+             NSURLErrorServerCertificateNotYetValid:
+            return "This website's security certificate has a problem."
+        case NSURLErrorUnsupportedURL:
+            return "The URL format is not supported."
+        case NSURLErrorFileDoesNotExist:
+            return "The file could not be found."
+        case NSURLErrorNoPermissionsToReadFile:
+            return "Permission denied to read this file."
+        default:
+            return nsError.localizedDescription
+        }
     }
 
     // MARK: - Private Methods

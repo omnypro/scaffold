@@ -8,7 +8,6 @@ struct ContentView: View {
     @StateObject private var consoleViewModel = ConsoleViewModel()
     @StateObject private var consoleWindowViewModel: ConsoleWindowViewModel
     @State private var selectedEngine: BrowserEngine = .webkit
-    @State private var showingErrorAlert = false
 
     init() {
         let consoleVM = ConsoleViewModel()
@@ -228,19 +227,6 @@ struct ContentView: View {
                         ? "Background image is set" : "No background image"
                 )
             }
-        }
-        .alert(
-            "Error",
-            isPresented: $showingErrorAlert
-        ) {
-            Button("OK") {
-                browserViewModel.errorMessage = nil
-            }
-        } message: {
-            Text(browserViewModel.errorMessage ?? "")
-        }
-        .onChange(of: browserViewModel.errorMessage) { _, newValue in
-            showingErrorAlert = newValue != nil
         }
         .focusedSceneValue(
             \.hasBackgroundImage,

@@ -152,8 +152,8 @@ struct WebViewRepresentable: NSViewRepresentable {
             withError error: Error
         ) {
             DispatchQueue.main.async { [weak self] in
-                self?.browserViewModel.isLoading = false
-                self?.browserViewModel.loadingProgress = 0.0
+                self?.browserViewModel.navigationFailed(with: error)
+                self?.loadErrorPage(in: webView, error: error)
             }
         }
 
@@ -163,8 +163,125 @@ struct WebViewRepresentable: NSViewRepresentable {
             withError error: Error
         ) {
             DispatchQueue.main.async { [weak self] in
-                self?.browserViewModel.isLoading = false
-                self?.browserViewModel.loadingProgress = 0.0
+                self?.browserViewModel.navigationFailed(with: error)
+                self?.loadErrorPage(in: webView, error: error)
+            }
+        }
+        
+        func webView(
+            _ webView: WKWebView,
+            didReceive challenge: URLAuthenticationChallenge,
+            completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void
+        ) {
+            completionHandler(.performDefaultHandling, nil)
+        }
+        
+        private func loadErrorPage(in webView: WKWebView, error: Error) {
+            let nsError = error as NSError
+            let errorTitle = errorTitle(for: nsError)
+            let errorMessage = browserViewModel.errorDescription(for: error)
+            
+            let html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>\(errorTitle)</title>
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+                        background: #1e1e1e;
+                        color: #e0e0e0;
+                        margin: 0;
+                        padding: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 100vh;
+                        box-sizing: border-box;
+                    }
+                    .error-container {
+                        max-width: 600px;
+                        text-align: center;
+                    }
+                    h1 {
+                        font-size: 48px;
+                        margin: 0 0 20px 0;
+                        font-weight: 300;
+                    }
+                    p {
+                        font-size: 18px;
+                        line-height: 1.6;
+                        margin: 0 0 30px 0;
+                        color: #b0b0b0;
+                    }
+                    .details {
+                        font-size: 14px;
+                        color: #808080;
+                        margin-top: 40px;
+                        padding-top: 20px;
+                        border-top: 1px solid #333;
+                    }
+                    button {
+                        background: #0066cc;
+                        color: white;
+                        border: none;
+                        padding: 12px 24px;
+                        font-size: 16px;
+                        border-radius: 6px;
+                        cursor: pointer;
+                        margin: 10px;
+                    }
+                    button:hover {
+                        background: #0052a3;
+                    }
+                    code {
+                        background: #2a2a2a;
+                        padding: 2px 6px;
+                        border-radius: 3px;
+                        font-family: monospace;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="error-container">
+                    <h1>\(errorTitle)</h1>
+                    <p>\(errorMessage)</p>
+                    <button onclick="location.reload()">Try Again</button>
+                    <div class="details">
+                        <p>Error Code: <code>\(nsError.code)</code></p>
+                    </div>
+                </div>
+            </body>
+            </html>
+            """
+            
+            webView.loadHTMLString(html, baseURL: nil)
+        }
+        
+        private func errorTitle(for error: NSError) -> String {
+            switch error.code {
+            case NSURLErrorCannotFindHost, NSURLErrorDNSLookupFailed:
+                return "Server Not Found"
+            case NSURLErrorCannotConnectToHost:
+                return "Cannot Connect"
+            case NSURLErrorNotConnectedToInternet:
+                return "No Internet Connection"
+            case NSURLErrorTimedOut:
+                return "Connection Timed Out"
+            case NSURLErrorNetworkConnectionLost:
+                return "Connection Lost"
+            case NSURLErrorServerCertificateHasBadDate,
+                 NSURLErrorServerCertificateUntrusted,
+                 NSURLErrorServerCertificateHasUnknownRoot,
+                 NSURLErrorServerCertificateNotYetValid:
+                return "Security Error"
+            case NSURLErrorFileDoesNotExist:
+                return "File Not Found"
+            case NSURLErrorNoPermissionsToReadFile:
+                return "Access Denied"
+            default:
+                return "Cannot Load Page"
             }
         }
     }
