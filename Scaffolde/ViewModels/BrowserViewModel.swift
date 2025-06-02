@@ -11,59 +11,71 @@ class BrowserViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var loadingProgress: Double = 0.0
     @Published var navigationError: Error? = nil
-    
+
     @Published var navigationRequest: URLRequest? = nil
     @Published var navigationID = UUID()
+
+    // WebView Commands
+    @Published var reloadCommand = UUID()
+    @Published var hardReloadCommand = UUID()
+    @Published var stopLoadingCommand = UUID()
+
+    // UI Commands
+    @Published var focusURLBarCommand = UUID()
 
     // MARK: - Public Methods
 
     /// Loads the content from the current URL string
     func loadContent() {
-        let trimmedString = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedString = urlString.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        )
         guard !trimmedString.isEmpty else {
             return
         }
 
         navigationError = nil
-        
+
         if let url = parseURL(from: trimmedString) {
             navigate(to: url)
         } else {
             let error = NSError(
                 domain: "Scaffolde",
                 code: NSURLErrorBadURL,
-                userInfo: [NSLocalizedDescriptionKey: "Invalid URL or file path"]
+                userInfo: [
+                    NSLocalizedDescriptionKey: "Invalid URL or file path"
+                ]
             )
             navigationFailed(with: error)
         }
     }
-    
+
     /// Navigate to a specific URL
     func navigate(to url: URL) {
         navigationRequest = URLRequest(url: url)
         navigationID = UUID()
     }
-    
+
     /// Parse URL from string, handling various formats
     private func parseURL(from string: String) -> URL? {
         let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
-        
+
         if trimmed.hasPrefix("/") {
             return URL(fileURLWithPath: trimmed)
         }
-        
+
         if trimmed.hasPrefix("file://") {
             return URL(string: trimmed)
         }
-        
+
         if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
             return URL(string: trimmed)
         }
-        
+
         if let url = URL(string: "http://\(trimmed)"), url.host != nil {
             return url
         }
-        
+
         return nil
     }
 
@@ -87,18 +99,26 @@ class BrowserViewModel: ObservableObject {
 
     /// Refreshes the current loaded content
     func refresh() {
-        guard let url = currentURL else { return }
-        navigate(to: url)
+        guard currentURL != nil else { return }
+        reloadCommand = UUID()
     }
 
     /// Performs a hard reload (bypass cache)
     func hardReload() {
         guard currentURL != nil else { return }
+        hardReloadCommand = UUID()
+    }
 
-        NotificationCenter.default.post(
-            name: Notification.Name("HardReloadWebView"),
-            object: nil
-        )
+    /// Stops loading the current page
+    func stopLoading() {
+        stopLoadingCommand = UUID()
+        isLoading = false
+        loadingProgress = 0.0
+    }
+
+    /// Focuses the URL bar
+    func focusURLBar() {
+        focusURLBarCommand = UUID()
     }
 
     /// Clears the current URL and loaded content
@@ -109,25 +129,25 @@ class BrowserViewModel: ObservableObject {
         navigationError = nil
         isLoading = false
     }
-    
+
     /// Called when WebView successfully loads a URL
     func didNavigate(to url: URL) {
         currentURL = url
         urlString = url.absoluteString
         navigationError = nil
     }
-    
+
     /// Called when navigation fails
     func navigationFailed(with error: Error) {
         isLoading = false
         loadingProgress = 0.0
         navigationError = error
     }
-    
+
     /// Convert NSError codes to user-friendly messages
     func errorDescription(for error: Error) -> String {
         let nsError = error as NSError
-        
+
         switch nsError.code {
         case NSURLErrorCannotFindHost:
             return "Server not found. Check the URL and try again."
@@ -140,9 +160,9 @@ class BrowserViewModel: ObservableObject {
         case NSURLErrorNetworkConnectionLost:
             return "Network connection was lost."
         case NSURLErrorServerCertificateHasBadDate,
-             NSURLErrorServerCertificateUntrusted,
-             NSURLErrorServerCertificateHasUnknownRoot,
-             NSURLErrorServerCertificateNotYetValid:
+            NSURLErrorServerCertificateUntrusted,
+            NSURLErrorServerCertificateHasUnknownRoot,
+            NSURLErrorServerCertificateNotYetValid:
             return "This website's security certificate has a problem."
         case NSURLErrorUnsupportedURL:
             return "The URL format is not supported."

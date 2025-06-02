@@ -1,13 +1,12 @@
 import AppKit
 import SwiftUI
-import WebKit
 
 struct ContentView: View {
+    @StateObject private var appState = AppState()
     @StateObject private var browserViewModel = BrowserViewModel()
     @StateObject private var windowViewModel = WindowViewModel()
     @StateObject private var consoleViewModel = ConsoleViewModel()
     @StateObject private var consoleWindowViewModel: ConsoleWindowViewModel
-    @State private var selectedEngine: BrowserEngine = .webkit
     @FocusState private var isURLFieldFocused: Bool
 
     init() {
@@ -34,7 +33,7 @@ struct ContentView: View {
                     .cornerRadius(8)
             }
 
-            selectedEngine.createView(
+            appState.selectedEngine.createView(
                 consoleViewModel: consoleViewModel,
                 browserViewModel: browserViewModel
             )
@@ -79,87 +78,26 @@ struct ContentView: View {
         .onAppear {
             windowViewModel.setupWindow()
         }
-        .onReceive(
-            NotificationCenter.default.publisher(
-                for: Notification.Name("OpenFile")
-            )
-        ) { _ in
-            browserViewModel.selectLocalFile()
-        }
-        .onReceive(
-            NotificationCenter.default.publisher(
-                for: Notification.Name("RefreshWebView")
-            )
-        ) { _ in
-            refreshWebView()
-        }
-        .onReceive(
-            NotificationCenter.default.publisher(
-                for: Notification.Name("SetEngine")
-            )
-        ) { notification in
-            if let engine = notification.object as? BrowserEngine {
-                selectedEngine = engine
-            }
-        }
-        .onReceive(
-            NotificationCenter.default.publisher(
-                for: Notification.Name("SetBackgroundImage")
-            )
-        ) { _ in
-            windowViewModel.selectBackgroundImage()
-        }
-        .onReceive(
-            NotificationCenter.default.publisher(
-                for: Notification.Name("ClearBackgroundImage")
-            )
-        ) { _ in
-            windowViewModel.clearBackgroundImage()
-        }
-        .onReceive(
-            NotificationCenter.default.publisher(
-                for: Notification.Name("ToggleBackgroundImage")
-            )
-        ) { _ in
-            windowViewModel.toggleBackgroundImage()
-        }
-        .onReceive(
-            NotificationCenter.default.publisher(
-                for: Notification.Name("HardReloadWebView")
-            )
-        ) { _ in
-            hardReloadWebView()
-        }
-        .onReceive(
-            NotificationCenter.default.publisher(
-                for: Notification.Name("ToggleConsole")
-            )
-        ) { _ in
-            consoleWindowViewModel.toggle()
-        }
-        .onReceive(
-            NotificationCenter.default.publisher(
-                for: Notification.Name("FocusURLBar")
-            )
-        ) { _ in
-            isURLFieldFocused = true
-            DispatchQueue.main.async {
-                if let window = NSApp.keyWindow,
-                   let fieldEditor = window.fieldEditor(false, for: nil) {
-                    fieldEditor.selectAll(nil)
+        .task {
+            for await _ in browserViewModel.$focusURLBarCommand.values {
+                isURLFieldFocused = true
+                DispatchQueue.main.async {
+                    if let window = NSApp.keyWindow,
+                        let fieldEditor = window.fieldEditor(false, for: nil)
+                    {
+                        fieldEditor.selectAll(nil)
+                    }
                 }
             }
         }
-        .onReceive(
-            NotificationCenter.default.publisher(
-                for: Notification.Name("StopLoading")
-            )
-        ) { _ in
-            if isURLFieldFocused {
-                browserViewModel.urlString = ""
-                isURLFieldFocused = false
-            } else if browserViewModel.isLoading {
-                stopLoading()
+        .task {
+            for await _ in browserViewModel.$stopLoadingCommand.values {
+                if isURLFieldFocused {
+                    browserViewModel.urlString = ""
+                    isURLFieldFocused = false
+                } else if browserViewModel.isLoading {
+                    // Already handled by BrowserViewModel.stopLoading()
+                }
             }
         }
         .toolbar {
@@ -180,7 +118,7 @@ struct ContentView: View {
                 )
 
                 Button(action: {
-                    refreshWebView()
+                    browserViewModel.refresh()
                 }) {
                     Image(systemName: "arrow.clockwise")
                 }
@@ -259,71 +197,13 @@ struct ContentView: View {
             \.hasBackgroundImage,
             windowViewModel.backgroundImage != nil
         )
-        .focusedSceneValue(\.selectedBrowserEngine, selectedEngine)
+        .focusedSceneValue(\.selectedBrowserEngine, appState.selectedEngine)
+        .focusedSceneValue(\.appState, appState)
+        .focusedSceneValue(\.browserViewModel, browserViewModel)
+        .focusedSceneValue(\.windowViewModel, windowViewModel)
+        .focusedSceneValue(\.consoleWindowViewModel, consoleWindowViewModel)
     }
 
-    private func refreshWebView() {
-        func findWebView(in view: NSView) -> WKWebView? {
-            if let webView = view as? WKWebView {
-                return webView
-            }
-            for subview in view.subviews {
-                if let found = findWebView(in: subview) {
-                    return found
-                }
-            }
-            return nil
-        }
-
-        if let window = NSApp.windows.first,
-            let contentView = window.contentView,
-            let webView = findWebView(in: contentView)
-        {
-            webView.reload()
-        }
-    }
-
-    private func hardReloadWebView() {
-        func findWebView(in view: NSView) -> WKWebView? {
-            if let webView = view as? WKWebView {
-                return webView
-            }
-            for subview in view.subviews {
-                if let found = findWebView(in: subview) {
-                    return found
-                }
-            }
-            return nil
-        }
-
-        if let window = NSApp.windows.first,
-            let contentView = window.contentView,
-            let webView = findWebView(in: contentView)
-        {
-            webView.reloadFromOrigin()
-        }
-    }
-    
-    private func stopLoading() {
-        func findWebView(in view: NSView) -> WKWebView? {
-            if let webView = view as? WKWebView {
-                return webView
-            }
-            for subview in view.subviews {
-                if let found = findWebView(in: subview) {
-                    return found
-                }
-            }
-            return nil
-        }
-        
-        if let window = NSApp.windows.first,
-           let contentView = window.contentView,
-           let webView = findWebView(in: contentView) {
-            webView.stopLoading()
-            browserViewModel.isLoading = false
-        }
-    }
 }
 
 #Preview {

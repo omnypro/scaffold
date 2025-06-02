@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 @main
@@ -7,6 +6,13 @@ struct ScaffoldeApp: App {
     @FocusedValue(\.hasBackgroundImage) private var hasBackgroundImage: Bool?
     @FocusedValue(\.selectedBrowserEngine) private var selectedEngine:
         BrowserEngine?
+    @FocusedValue(\.browserViewModel) private var browserViewModel:
+        BrowserViewModel?
+    @FocusedValue(\.windowViewModel) private var windowViewModel:
+        WindowViewModel?
+    @FocusedValue(\.consoleWindowViewModel) private var consoleWindowViewModel:
+        ConsoleWindowViewModel?
+    @FocusedValue(\.appState) private var appState: AppState?
 
     var body: some Scene {
         WindowGroup {
@@ -23,28 +29,19 @@ struct ScaffoldeApp: App {
             }
             CommandGroup(after: .newItem) {
                 Button("Open File...") {
-                    NotificationCenter.default.post(
-                        name: Notification.Name("OpenFile"),
-                        object: nil
-                    )
+                    browserViewModel?.selectLocalFile()
                 }
                 .keyboardShortcut("O", modifiers: .command)
             }
 
             CommandGroup(replacing: .toolbar) {
                 Button("Reload") {
-                    NotificationCenter.default.post(
-                        name: Notification.Name("RefreshWebView"),
-                        object: nil
-                    )
+                    browserViewModel?.refresh()
                 }
                 .keyboardShortcut("R", modifiers: .command)
 
                 Button("Hard Reload") {
-                    NotificationCenter.default.post(
-                        name: Notification.Name("HardReloadWebView"),
-                        object: nil
-                    )
+                    browserViewModel?.hardReload()
                 }
                 .keyboardShortcut("R", modifiers: [.command, .shift])
 
@@ -52,17 +49,11 @@ struct ScaffoldeApp: App {
 
                 Menu("Browser Engine") {
                     Button("WebKit") {
-                        NotificationCenter.default.post(
-                            name: Notification.Name("SetEngine"),
-                            object: BrowserEngine.webkit
-                        )
+                        appState?.setEngine(.webkit)
                     }
 
                     Button("Chromium (Coming Soon)") {
-                        NotificationCenter.default.post(
-                            name: Notification.Name("SetEngine"),
-                            object: BrowserEngine.chromium
-                        )
+                        appState?.setEngine(.chromium)
                     }
                     .disabled(true)
                 }
@@ -70,54 +61,36 @@ struct ScaffoldeApp: App {
                 Divider()
 
                 Button("Set Background Image...") {
-                    NotificationCenter.default.post(
-                        name: Notification.Name("SetBackgroundImage"),
-                        object: nil
-                    )
+                    windowViewModel?.selectBackgroundImage()
                 }
 
                 Button("Toggle Background Image") {
-                    NotificationCenter.default.post(
-                        name: Notification.Name("ToggleBackgroundImage"),
-                        object: nil
-                    )
+                    windowViewModel?.toggleBackgroundImage()
                 }
                 .disabled(hasBackgroundImage != true)
                 .keyboardShortcut("B", modifiers: .command)
 
                 Button("Clear Background Image") {
-                    NotificationCenter.default.post(
-                        name: Notification.Name("ClearBackgroundImage"),
-                        object: nil
-                    )
+                    windowViewModel?.clearBackgroundImage()
                 }
                 .disabled(hasBackgroundImage != true)
 
                 Divider()
 
                 Button("Toggle Console") {
-                    NotificationCenter.default.post(
-                        name: Notification.Name("ToggleConsole"),
-                        object: nil
-                    )
+                    consoleWindowViewModel?.toggle()
                 }
                 .keyboardShortcut("J", modifiers: [.command, .option])
-                
+
                 Divider()
-                
+
                 Button("Focus URL Bar") {
-                    NotificationCenter.default.post(
-                        name: Notification.Name("FocusURLBar"),
-                        object: nil
-                    )
+                    browserViewModel?.focusURLBar()
                 }
                 .keyboardShortcut("L", modifiers: .command)
-                
+
                 Button("Stop Loading") {
-                    NotificationCenter.default.post(
-                        name: Notification.Name("StopLoading"),
-                        object: nil
-                    )
+                    browserViewModel?.stopLoading()
                 }
                 .keyboardShortcut(.escape, modifiers: [])
             }
