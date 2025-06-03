@@ -20,6 +20,148 @@ struct ContentView: View {
     private let webViewPadding: CGFloat = 8
 
     var body: some View {
+        webContent
+            .onAppear {
+                windowViewModel.setupWindow()
+            }
+            .task {
+                for await _ in browserViewModel.$focusURLBarCommand.values {
+                    DispatchQueue.main.async {
+                        NSApp.keyWindow?.focusURLTextField()
+                    }
+                }
+            }
+            .task {
+                for await _ in browserViewModel.$stopLoadingCommand.values {
+                    if isURLFieldFocused {
+                        // Clear URL field if focused
+                        if !browserViewModel.urlString.isEmpty {
+                            browserViewModel.urlString = ""
+                        } else {
+                            // If already empty, blur the field
+                            isURLFieldFocused = false
+                        }
+                    } else if browserViewModel.isLoading {
+                        // Stop loading handled by BrowserViewModel
+                    }
+                }
+            }
+            .toolbar {
+                ToolbarItemGroup(placement: .principal) {
+                    TextField(
+                        "Enter URL or search",
+                        text: $browserViewModel.urlString
+                    )
+                    .textFieldStyle(.roundedBorder)
+                    .frame(minWidth: 300)
+                    .focused($isURLFieldFocused)
+                    .onSubmit {
+                        browserViewModel.loadContent()
+                    }
+                    .accessibilityLabel("URL input field")
+                    .accessibilityHint(
+                        "Enter a web URL or local file path and press Enter to load"
+                    )
+
+                    Button(action: {
+                        browserViewModel.refresh()
+                    }) {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                    .accessibilityLabel("Refresh")
+                    .accessibilityHint("Reload the current page")
+                }
+
+                ToolbarItemGroup(placement: .automatic) {
+                    Button(action: {
+                        consoleWindowViewModel.toggle()
+                    }) {
+                        Image(
+                            systemName: consoleWindowViewModel.isVisible
+                                ? "terminal.fill" : "terminal"
+                        )
+                    }
+                    .accessibilityLabel("Toggle console")
+                    .accessibilityHint("Show or hide the console window")
+
+                    Text(windowViewModel.sizeDisplayText)
+                        .font(
+                            .system(
+                                size: 12,
+                                weight: .bold,
+                                design: .monospaced
+                            )
+                        )
+                        .foregroundColor(.secondary)
+
+                    Menu {
+                        ForEach(WindowSize.presets) { size in
+                            Button(windowViewModel.menuItemText(for: size)) {
+                                windowViewModel.setWindowSize(size)
+                            }
+                            .accessibilityLabel(
+                                "Set window size to \(size.name)"
+                            )
+                        }
+                    } label: {
+                        Image(systemName: "aspectratio")
+                    }
+                    .accessibilityLabel("Window size menu")
+                    .accessibilityHint("Choose a preset window size")
+
+                    Menu {
+                        Button("Set Background Image...") {
+                            windowViewModel.selectBackgroundImage()
+                        }
+                        .accessibilityLabel("Set background image")
+                        .accessibilityHint(
+                            "Choose an image to display behind the web content"
+                        )
+
+                        Button("Toggle Background Image") {
+                            windowViewModel.toggleBackgroundImage()
+                        }
+                        .disabled(windowViewModel.backgroundImage == nil)
+                        .keyboardShortcut("B", modifiers: .command)
+                        .accessibilityLabel("Toggle background image")
+                        .accessibilityHint(
+                            "Toggle the visibility of the background image"
+                        )
+
+                        Button("Clear Background Image") {
+                            windowViewModel.clearBackgroundImage()
+                        }
+                        .disabled(windowViewModel.backgroundImage == nil)
+                        .accessibilityLabel("Clear background image")
+                        .accessibilityHint(
+                            "Remove the current background image"
+                        )
+                    } label: {
+                        Image(
+                            systemName: windowViewModel.backgroundImage != nil
+                                ? "photo.fill" : "photo"
+                        )
+                    }
+                    .accessibilityLabel("Background image menu")
+                    .accessibilityHint(
+                        windowViewModel.backgroundImage != nil
+                            ? "Background image is set" : "No background image"
+                    )
+                }
+            }
+            .focusedSceneValue(
+                \.hasBackgroundImage,
+                windowViewModel.backgroundImage != nil
+            )
+            .focusedSceneValue(\.selectedBrowserEngine, appState.selectedEngine)
+            .focusedSceneValue(\.appState, appState)
+            .focusedSceneValue(\.browserViewModel, browserViewModel)
+            .focusedSceneValue(\.windowViewModel, windowViewModel)
+            .focusedSceneValue(\.consoleWindowViewModel, consoleWindowViewModel)
+    }
+
+    @ViewBuilder
+    private var webContent: some View {
         ZStack {
             if let backgroundImage = windowViewModel.backgroundImage {
                 Image(nsImage: backgroundImage)
@@ -75,135 +217,7 @@ struct ContentView: View {
                 )
             }
         }
-        .onAppear {
-            windowViewModel.setupWindow()
-        }
-        .task {
-            for await _ in browserViewModel.$focusURLBarCommand.values {
-                isURLFieldFocused = true
-                DispatchQueue.main.async {
-                    if let window = NSApp.keyWindow,
-                        let fieldEditor = window.fieldEditor(false, for: nil)
-                    {
-                        fieldEditor.selectAll(nil)
-                    }
-                }
-            }
-        }
-        .task {
-            for await _ in browserViewModel.$stopLoadingCommand.values {
-                if isURLFieldFocused {
-                    browserViewModel.urlString = ""
-                    isURLFieldFocused = false
-                } else if browserViewModel.isLoading {
-                    // Already handled by BrowserViewModel.stopLoading()
-                }
-            }
-        }
-        .toolbar {
-            ToolbarItemGroup(placement: .principal) {
-                TextField(
-                    "Enter URL or file path",
-                    text: $browserViewModel.urlString
-                )
-                .textFieldStyle(.roundedBorder)
-                .frame(minWidth: 300)
-                .onSubmit {
-                    browserViewModel.loadContent()
-                }
-                .focused($isURLFieldFocused)
-                .accessibilityLabel("URL input field")
-                .accessibilityHint(
-                    "Enter a web URL or local file path and press Enter to load"
-                )
-
-                Button(action: {
-                    browserViewModel.refresh()
-                }) {
-                    Image(systemName: "arrow.clockwise")
-                }
-                .accessibilityLabel("Refresh")
-                .accessibilityHint("Reload the current page")
-            }
-
-            ToolbarItemGroup(placement: .automatic) {
-                Button(action: {
-                    consoleWindowViewModel.toggle()
-                }) {
-                    Image(
-                        systemName: consoleWindowViewModel.isVisible
-                            ? "terminal.fill" : "terminal"
-                    )
-                }
-                .accessibilityLabel("Toggle console")
-                .accessibilityHint("Show or hide the console window")
-
-                Text(windowViewModel.sizeDisplayText)
-                    .font(.system(size: 12, weight: .bold, design: .monospaced))
-                    .foregroundColor(.secondary)
-
-                Menu {
-                    ForEach(WindowSize.presets) { size in
-                        Button(windowViewModel.menuItemText(for: size)) {
-                            windowViewModel.setWindowSize(size)
-                        }
-                        .accessibilityLabel("Set window size to \(size.name)")
-                    }
-                } label: {
-                    Image(systemName: "aspectratio")
-                }
-                .accessibilityLabel("Window size menu")
-                .accessibilityHint("Choose a preset window size")
-
-                Menu {
-                    Button("Set Background Image...") {
-                        windowViewModel.selectBackgroundImage()
-                    }
-                    .accessibilityLabel("Set background image")
-                    .accessibilityHint(
-                        "Choose an image to display behind the web content"
-                    )
-
-                    Button("Toggle Background Image") {
-                        windowViewModel.toggleBackgroundImage()
-                    }
-                    .disabled(windowViewModel.backgroundImage == nil)
-                    .keyboardShortcut("B", modifiers: .command)
-                    .accessibilityLabel("Toggle background image")
-                    .accessibilityHint(
-                        "Toggle the visibility of the background image"
-                    )
-
-                    Button("Clear Background Image") {
-                        windowViewModel.clearBackgroundImage()
-                    }
-                    .disabled(windowViewModel.backgroundImage == nil)
-                    .accessibilityLabel("Clear background image")
-                    .accessibilityHint("Remove the current background image")
-                } label: {
-                    Image(
-                        systemName: windowViewModel.backgroundImage != nil
-                            ? "photo.fill" : "photo"
-                    )
-                }
-                .accessibilityLabel("Background image menu")
-                .accessibilityHint(
-                    windowViewModel.backgroundImage != nil
-                        ? "Background image is set" : "No background image"
-                )
-            }
-        }
-        .focusedSceneValue(
-            \.hasBackgroundImage,
-            windowViewModel.backgroundImage != nil
-        )
-        .focusedSceneValue(\.selectedBrowserEngine, appState.selectedEngine)
-        .focusedSceneValue(\.appState, appState)
-        .focusedSceneValue(\.browserViewModel, browserViewModel)
-        .focusedSceneValue(\.windowViewModel, windowViewModel)
-        .focusedSceneValue(\.consoleWindowViewModel, consoleWindowViewModel)
     }
-
 }
 
 #Preview {
