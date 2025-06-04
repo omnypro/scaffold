@@ -1,18 +1,14 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 @main
 struct ScaffoldeApp: App {
     @Environment(\.openWindow) private var openWindow
     @FocusedValue(\.hasBackgroundImage) private var hasBackgroundImage: Bool?
-    @FocusedValue(\.selectedBrowserEngine) private var selectedEngine:
-        BrowserEngine?
-    @FocusedValue(\.browserViewModel) private var browserViewModel:
-        BrowserViewModel?
-    @FocusedValue(\.windowViewModel) private var windowViewModel:
-        WindowViewModel?
-    @FocusedValue(\.consoleWindowViewModel) private var consoleWindowViewModel:
-        ConsoleWindowViewModel?
-    @FocusedValue(\.appState) private var appState: AppState?
+    @FocusedValue(\.selectedBrowserEngine) private var selectedEngine: BrowserEngine?
+    @FocusedValue(\.browserViewModel) private var browserViewModel: BrowserViewModel?
+    @FocusedValue(\.windowViewModel) private var windowViewModel: WindowViewModel?
+    @FocusedValue(\.consoleWindowViewModel) private var consoleWindowViewModel: ConsoleWindowViewModel?
 
     var body: some Scene {
         WindowGroup {
@@ -27,16 +23,30 @@ struct ScaffoldeApp: App {
                     openWindow(id: "about")
                 }
             }
+            
             CommandGroup(after: .newItem) {
                 Button("Open File...") {
-                    browserViewModel?.selectLocalFile()
+                    let panel = NSOpenPanel()
+                    panel.allowsMultipleSelection = false
+                    panel.canChooseDirectories = false
+                    panel.canChooseFiles = true
+                    panel.allowedContentTypes = [.html, .data]
+                    panel.title = "Select HTML File"
+                    panel.message = "Choose an HTML file to load in the browser"
+                    
+                    if panel.runModal() == .OK {
+                        if let url = panel.url {
+                            browserViewModel?.urlString = url.path
+                            browserViewModel?.navigate()
+                        }
+                    }
                 }
                 .keyboardShortcut("O", modifiers: .command)
             }
 
             CommandGroup(replacing: .toolbar) {
                 Button("Reload") {
-                    browserViewModel?.refresh()
+                    browserViewModel?.reload()
                 }
                 .keyboardShortcut("R", modifiers: .command)
 
@@ -44,19 +54,6 @@ struct ScaffoldeApp: App {
                     browserViewModel?.hardReload()
                 }
                 .keyboardShortcut("R", modifiers: [.command, .shift])
-
-                Divider()
-
-                Menu("Browser Engine") {
-                    Button("WebKit") {
-                        appState?.setEngine(.webkit)
-                    }
-
-                    Button("Chromium (Coming Soon)") {
-                        appState?.setEngine(.chromium)
-                    }
-                    .disabled(true)
-                }
 
                 Divider()
 
@@ -85,7 +82,7 @@ struct ScaffoldeApp: App {
                 Divider()
 
                 Button("Focus URL Bar") {
-                    browserViewModel?.focusURLBar()
+                    // This is handled via FocusState in ContentView
                 }
                 .keyboardShortcut("L", modifiers: .command)
 
@@ -93,6 +90,31 @@ struct ScaffoldeApp: App {
                     browserViewModel?.stopLoading()
                 }
                 .keyboardShortcut(.escape, modifiers: [])
+
+                Menu("History") {
+                    Button("Clear History...") {
+                        // Show confirmation dialog
+                        if let historyManager = browserViewModel?.historyManager {
+                            NSAlert.showClearHistoryAlert { shouldClear in
+                                if shouldClear {
+                                    historyManager.clearHistory()
+                                }
+                            }
+                        }
+                    }
+
+                    Button("Clear History from Today") {
+                        browserViewModel?.historyManager.clearHistoryOlderThan(days: 0)
+                    }
+
+                    Button("Clear History Older Than 7 Days") {
+                        browserViewModel?.historyManager.clearHistoryOlderThan(days: 7)
+                    }
+
+                    Button("Clear History Older Than 30 Days") {
+                        browserViewModel?.historyManager.clearHistoryOlderThan(days: 30)
+                    }
+                }
             }
         }
         .windowToolbarStyle(.unified(showsTitle: false))

@@ -32,13 +32,13 @@ class ConsoleWindowViewModel: ObservableObject {
 
     /// Hides the console window
     func hide() {
-        consoleWindow?.close()
+        consoleWindow?.orderOut(nil)
         isVisible = false
     }
 
     /// Toggles the console window visibility
     func toggle() {
-        if isVisible {
+        if consoleWindow?.isVisible == true {
             hide()
         } else {
             show()
@@ -69,7 +69,7 @@ class ConsoleWindowViewModel: ObservableObject {
         }
 
         // Set up content view
-        let contentView = ConsoleView(consoleViewModel: consoleViewModel)
+        let contentView = ConsoleView(viewModel: consoleViewModel)
         window.contentView = NSHostingView(rootView: contentView)
 
         // Set up window delegate to track visibility

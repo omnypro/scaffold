@@ -1,168 +1,154 @@
-import AppKit
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var appState = AppState()
-    @StateObject private var browserViewModel = BrowserViewModel()
+    @StateObject private var browserViewModel: BrowserViewModel
     @StateObject private var windowViewModel = WindowViewModel()
-    @StateObject private var consoleViewModel = ConsoleViewModel()
     @StateObject private var consoleWindowViewModel: ConsoleWindowViewModel
+    @StateObject private var appState = AppState()
     @FocusState private var isURLFieldFocused: Bool
-
-    init() {
-        let consoleVM = ConsoleViewModel()
-        _consoleViewModel = StateObject(wrappedValue: consoleVM)
-        _consoleWindowViewModel = StateObject(
-            wrappedValue: ConsoleWindowViewModel(consoleViewModel: consoleVM)
-        )
-    }
 
     private let webViewPadding: CGFloat = 8
 
-    var body: some View {
-        webContent
-            .onAppear {
-                windowViewModel.setupWindow()
-            }
-            .task {
-                for await _ in browserViewModel.$focusURLBarCommand.values {
-                    DispatchQueue.main.async {
-                        NSApp.keyWindow?.focusURLTextField()
-                    }
-                }
-            }
-            .task {
-                for await _ in browserViewModel.$stopLoadingCommand.values {
-                    if isURLFieldFocused {
-                        // Clear URL field if focused
-                        if !browserViewModel.urlString.isEmpty {
-                            browserViewModel.urlString = ""
-                        } else {
-                            // If already empty, blur the field
-                            isURLFieldFocused = false
-                        }
-                    } else if browserViewModel.isLoading {
-                        // Stop loading handled by BrowserViewModel
-                    }
-                }
-            }
-            .toolbar {
-                ToolbarItemGroup(placement: .principal) {
-                    TextField(
-                        "Enter URL or search",
-                        text: $browserViewModel.urlString
-                    )
-                    .textFieldStyle(.roundedBorder)
-                    .frame(minWidth: 300)
-                    .focused($isURLFieldFocused)
-                    .onSubmit {
-                        browserViewModel.loadContent()
-                    }
-                    .accessibilityLabel("URL input field")
-                    .accessibilityHint(
-                        "Enter a web URL or local file path and press Enter to load"
-                    )
+    init() {
+        let historyManager = HistoryManager()
+        let consoleViewModel = ConsoleViewModel()
+        let browserVM = BrowserViewModel(
+            historyManager: historyManager,
+            consoleViewModel: consoleViewModel
+        )
 
-                    Button(action: {
-                        browserViewModel.refresh()
-                    }) {
-                        Image(systemName: "arrow.clockwise")
-                    }
-                    .accessibilityLabel("Refresh")
-                    .accessibilityHint("Reload the current page")
-                }
-
-                ToolbarItemGroup(placement: .automatic) {
-                    Button(action: {
-                        consoleWindowViewModel.toggle()
-                    }) {
-                        Image(
-                            systemName: consoleWindowViewModel.isVisible
-                                ? "terminal.fill" : "terminal"
-                        )
-                    }
-                    .accessibilityLabel("Toggle console")
-                    .accessibilityHint("Show or hide the console window")
-
-                    Text(windowViewModel.sizeDisplayText)
-                        .font(
-                            .system(
-                                size: 12,
-                                weight: .bold,
-                                design: .monospaced
-                            )
-                        )
-                        .foregroundColor(.secondary)
-
-                    Menu {
-                        ForEach(WindowSize.presets) { size in
-                            Button(windowViewModel.menuItemText(for: size)) {
-                                windowViewModel.setWindowSize(size)
-                            }
-                            .accessibilityLabel(
-                                "Set window size to \(size.name)"
-                            )
-                        }
-                    } label: {
-                        Image(systemName: "aspectratio")
-                    }
-                    .accessibilityLabel("Window size menu")
-                    .accessibilityHint("Choose a preset window size")
-
-                    Menu {
-                        Button("Set Background Image...") {
-                            windowViewModel.selectBackgroundImage()
-                        }
-                        .accessibilityLabel("Set background image")
-                        .accessibilityHint(
-                            "Choose an image to display behind the web content"
-                        )
-
-                        Button("Toggle Background Image") {
-                            windowViewModel.toggleBackgroundImage()
-                        }
-                        .disabled(windowViewModel.backgroundImage == nil)
-                        .keyboardShortcut("B", modifiers: .command)
-                        .accessibilityLabel("Toggle background image")
-                        .accessibilityHint(
-                            "Toggle the visibility of the background image"
-                        )
-
-                        Button("Clear Background Image") {
-                            windowViewModel.clearBackgroundImage()
-                        }
-                        .disabled(windowViewModel.backgroundImage == nil)
-                        .accessibilityLabel("Clear background image")
-                        .accessibilityHint(
-                            "Remove the current background image"
-                        )
-                    } label: {
-                        Image(
-                            systemName: windowViewModel.backgroundImage != nil
-                                ? "photo.fill" : "photo"
-                        )
-                    }
-                    .accessibilityLabel("Background image menu")
-                    .accessibilityHint(
-                        windowViewModel.backgroundImage != nil
-                            ? "Background image is set" : "No background image"
-                    )
-                }
-            }
-            .focusedSceneValue(
-                \.hasBackgroundImage,
-                windowViewModel.backgroundImage != nil
+        _browserViewModel = StateObject(wrappedValue: browserVM)
+        _consoleWindowViewModel = StateObject(
+            wrappedValue: ConsoleWindowViewModel(
+                consoleViewModel: consoleViewModel
             )
-            .focusedSceneValue(\.selectedBrowserEngine, appState.selectedEngine)
-            .focusedSceneValue(\.appState, appState)
-            .focusedSceneValue(\.browserViewModel, browserViewModel)
-            .focusedSceneValue(\.windowViewModel, windowViewModel)
-            .focusedSceneValue(\.consoleWindowViewModel, consoleWindowViewModel)
+        )
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Web content
+            webContent
+                .frame(
+                    width: windowViewModel.currentSize.width,
+                    height: windowViewModel.currentSize.height
+                )
+                .padding(
+                    EdgeInsets(
+                        top: 0,
+                        leading: webViewPadding,
+                        bottom: webViewPadding,
+                        trailing: webViewPadding
+                    )
+                )
+        }
+        .toolbar {
+            ToolbarItemGroup(placement: .principal) {
+                // Back/Forward buttons
+                Button(action: { browserViewModel.goBack() }) {
+                    Image(systemName: "chevron.left")
+                }
+                .disabled(!browserViewModel.canGoBack)
+
+                Button(action: { browserViewModel.goForward() }) {
+                    Image(systemName: "chevron.right")
+                }
+                .disabled(!browserViewModel.canGoForward)
+
+                // URL field
+                TextField(
+                    "Enter URL or search",
+                    text: $browserViewModel.urlString
+                )
+                .textFieldStyle(.roundedBorder)
+                .frame(minWidth: 300)
+                .focused($isURLFieldFocused)
+                .onSubmit {
+                    browserViewModel.navigate()
+                }
+
+                // Reload button
+                Button(action: {
+                    if browserViewModel.isLoading {
+                        browserViewModel.stopLoading()
+                    } else {
+                        browserViewModel.reload()
+                    }
+                }) {
+                    Image(
+                        systemName: browserViewModel.isLoading
+                            ? "xmark" : "arrow.clockwise"
+                    )
+                }
+            }
+
+            ToolbarItemGroup(placement: .automatic) {
+                // Console toggle
+                Button(action: { consoleWindowViewModel.toggle() }) {
+                    Image(
+                        systemName: consoleWindowViewModel.isVisible
+                            ? "terminal.fill" : "terminal"
+                    )
+                }
+
+                // Window size display
+                Text(windowViewModel.sizeDisplayText)
+                    .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    .foregroundColor(.secondary)
+
+                // Window size menu
+                Menu {
+                    ForEach(WindowSize.presets) { size in
+                        Button(windowViewModel.menuItemText(for: size)) {
+                            windowViewModel.setWindowSize(size)
+                        }
+                    }
+                } label: {
+                    Image(systemName: "aspectratio")
+                }
+
+                // Background image menu
+                Menu {
+                    Button("Set Background Image...") {
+                        windowViewModel.selectBackgroundImage()
+                    }
+
+                    Button("Toggle Background Image") {
+                        windowViewModel.toggleBackgroundImage()
+                    }
+                    .disabled(windowViewModel.backgroundImage == nil)
+                    .keyboardShortcut("B", modifiers: .command)
+
+                    Button("Clear Background Image") {
+                        windowViewModel.clearBackgroundImage()
+                    }
+                    .disabled(windowViewModel.backgroundImage == nil)
+                } label: {
+                    Image(
+                        systemName: windowViewModel.backgroundImage != nil
+                            ? "photo.fill" : "photo"
+                    )
+                }
+            }
+        }
+        .onAppear {
+            windowViewModel.setupWindow()
+            setupKeyboardShortcuts()
+        }
+        .focusedSceneValue(
+            \.hasBackgroundImage,
+            windowViewModel.backgroundImage != nil
+        )
+        .focusedSceneValue(\.selectedBrowserEngine, appState.selectedEngine)
+        .focusedSceneValue(\.browserViewModel, browserViewModel)
+        .focusedSceneValue(\.windowViewModel, windowViewModel)
+        .focusedSceneValue(\.consoleWindowViewModel, consoleWindowViewModel)
     }
 
     @ViewBuilder
     private var webContent: some View {
         ZStack {
+            // Background image if set
             if let backgroundImage = windowViewModel.backgroundImage {
                 Image(nsImage: backgroundImage)
                     .resizable()
@@ -175,29 +161,17 @@ struct ContentView: View {
                     .cornerRadius(8)
             }
 
+            // WebView
             appState.selectedEngine.createView(
-                consoleViewModel: consoleViewModel,
                 browserViewModel: browserViewModel
-            )
-            .frame(
-                width: windowViewModel.currentSize.width,
-                height: windowViewModel.currentSize.height
             )
             .background(
                 windowViewModel.backgroundImage == nil
                     ? Color.black : Color.clear
             )
             .cornerRadius(8)
-        }
-        .padding(
-            EdgeInsets(
-                top: 0,
-                leading: webViewPadding,
-                bottom: webViewPadding,
-                trailing: webViewPadding
-            )
-        )
-        .overlay(alignment: .bottom) {
+
+            // Loading progress bar
             if browserViewModel.isLoading {
                 GeometryReader { geometry in
                     Capsule()
@@ -210,7 +184,7 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .frame(height: 4)
-                .padding(.horizontal, webViewPadding)
+                .frame(maxHeight: .infinity, alignment: .bottom)
                 .animation(
                     .easeInOut(duration: 0.2),
                     value: browserViewModel.loadingProgress
@@ -218,8 +192,16 @@ struct ContentView: View {
             }
         }
     }
-}
 
-#Preview {
-    ContentView()
+    private func setupKeyboardShortcuts() {
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            if event.modifierFlags.contains(.command)
+                && event.charactersIgnoringModifiers == "l"
+            {
+                isURLFieldFocused = true
+                return nil
+            }
+            return event
+        }
+    }
 }

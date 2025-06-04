@@ -32,11 +32,25 @@ class ConsoleViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var logs: [ConsoleLog] = []
     @Published var filterLevel: ConsoleLog.LogLevel? = nil
+    @Published var searchText: String = ""
 
     // MARK: - Computed Properties
     var filteredLogs: [ConsoleLog] {
-        guard let filterLevel = filterLevel else { return logs }
-        return logs.filter { $0.level == filterLevel }
+        var filtered = logs
+        
+        // Filter by level if set
+        if let filterLevel = filterLevel {
+            filtered = filtered.filter { $0.level == filterLevel }
+        }
+        
+        // Filter by search text
+        if !searchText.isEmpty {
+            filtered = filtered.filter { log in
+                log.message.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+        
+        return filtered
     }
 
     var logCounts: (total: Int, errors: Int, warnings: Int) {

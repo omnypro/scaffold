@@ -13,7 +13,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>0.9.3</string>
 	<key>CFBundleVersion</key>
-	<string>48+</string>
+	<string>50+</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.developer-tools</string>
 	<key>NSAppTransportSecurity</key>
@@ -25,7 +25,9 @@
 	</dict>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2025 Omnyist Productions, LLC. All rights reserved.</string>
+	<key>NSQuitAlwaysKeepsWindows</key>
+	<false/>
 	<key>ScaffoldeCommit</key>
-	<string>9f6826a</string>
+	<string>680675a</string>
 </dict>
 </plist>

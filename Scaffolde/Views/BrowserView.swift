@@ -10,16 +10,10 @@ enum BrowserEngine: String, CaseIterable {
     case chromium = "Chromium"
 
     @ViewBuilder
-    func createView(
-        consoleViewModel: ConsoleViewModel,
-        browserViewModel: BrowserViewModel
-    ) -> some View {
+    func createView(browserViewModel: BrowserViewModel) -> some View {
         switch self {
         case .webkit:
-            WebViewRepresentable(
-                consoleViewModel: consoleViewModel,
-                browserViewModel: browserViewModel
-            )
+            WebViewRepresentable(webView: browserViewModel.webView)
         case .chromium:
             Text("Chromium support coming soon")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

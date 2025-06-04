@@ -1,200 +1,296 @@
-import AppKit
+import Combine
 import Foundation
-import UniformTypeIdentifiers
+import WebKit
 
-/// ViewModel responsible for managing browser state and URL handling
+/// Simplified BrowserViewModel that owns WebView directly
 @MainActor
-class BrowserViewModel: ObservableObject {
+class BrowserViewModel: NSObject, ObservableObject {
     // MARK: - Published Properties
     @Published var urlString: String = ""
     @Published var currentURL: URL? = nil
     @Published var isLoading: Bool = false
     @Published var loadingProgress: Double = 0.0
+    @Published var pageTitle: String = ""
+    @Published var canGoBack: Bool = false
+    @Published var canGoForward: Bool = false
     @Published var navigationError: Error? = nil
-
-    @Published var navigationRequest: URLRequest? = nil
-    @Published var navigationID = UUID()
-
-    // WebView Commands
-    @Published var reloadCommand = UUID()
-    @Published var hardReloadCommand = UUID()
-    @Published var stopLoadingCommand = UUID()
-
-    // UI Commands
-    @Published var focusURLBarCommand = UUID()
-
-    // MARK: - Public Methods
-
-    /// Loads the content from the current URL string
-    func loadContent() {
-        let trimmedString = urlString.trimmingCharacters(
-            in: .whitespacesAndNewlines
-        )
-        guard !trimmedString.isEmpty else {
-            return
-        }
-
-        navigationError = nil
-
-        if let url = parseURL(from: trimmedString) {
-            navigate(to: url)
+    
+    // MARK: - WebView
+    let webView: WKWebView
+    
+    // MARK: - Dependencies
+    let historyManager: HistoryManager
+    let consoleViewModel: ConsoleViewModel
+    
+    // MARK: - Private Properties
+    private var loadingObserver: NSKeyValueObservation?
+    private var progressObserver: NSKeyValueObservation?
+    private var titleObserver: NSKeyValueObservation?
+    private var urlObserver: NSKeyValueObservation?
+    private var canGoBackObserver: NSKeyValueObservation?
+    private var canGoForwardObserver: NSKeyValueObservation?
+    
+    // MARK: - Initialization
+    init(historyManager: HistoryManager, consoleViewModel: ConsoleViewModel) {
+        self.historyManager = historyManager
+        self.consoleViewModel = consoleViewModel
+        
+        // Configure WebView
+        let config = WKWebViewConfiguration()
+        config.preferences.setValue(true, forKey: "developerExtrasEnabled")
+        config.preferences.setValue(true, forKey: "allowFileAccessFromFileURLs")
+        config.setValue(true, forKey: "allowUniversalAccessFromFileURLs")
+        
+        self.webView = WKWebView(frame: .zero, configuration: config)
+        super.init()
+        
+        // Set delegates
+        webView.navigationDelegate = self
+        
+        // Setup observers for WebView properties
+        setupObservers()
+        
+        // Setup console logging
+        setupConsoleLogging()
+    }
+    
+    // MARK: - Navigation Methods
+    
+    /// Navigate to URL from the URL bar
+    func navigate() {
+        let trimmed = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        
+        if let url = parseURL(from: trimmed) {
+            if url.isFileURL {
+                webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+            } else {
+                webView.load(URLRequest(url: url))
+            }
         } else {
-            let error = NSError(
+            navigationError = NSError(
                 domain: "Scaffolde",
                 code: NSURLErrorBadURL,
-                userInfo: [
-                    NSLocalizedDescriptionKey: "Invalid URL or file path"
-                ]
+                userInfo: [NSLocalizedDescriptionKey: "Invalid URL or file path"]
             )
-            navigationFailed(with: error)
         }
     }
-
-    /// Navigate to a specific URL
-    func navigate(to url: URL) {
-        navigationRequest = URLRequest(url: url)
-        navigationID = UUID()
+    
+    /// Reload the current page
+    func reload() {
+        webView.reload()
     }
-
-    /// Parse URL from string, handling various formats
-    private func parseURL(from string: String) -> URL? {
-        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        if trimmed.hasPrefix("/") {
-            return URL(fileURLWithPath: trimmed)
-        }
-
-        if trimmed.hasPrefix("file://") {
-            return URL(string: trimmed)
-        }
-
-        if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
-            return URL(string: trimmed)
-        }
-
-        if let url = URL(string: "http://\(trimmed)"), url.host != nil {
-            return url
-        }
-
-        return nil
+    
+    /// Hard reload (reload from origin)
+    func hardReload() {
+        webView.reloadFromOrigin()
     }
-
-    /// Opens a file picker and loads the selected HTML file
-    func selectLocalFile() {
-        let panel = NSOpenPanel()
-        panel.allowsMultipleSelection = false
-        panel.canChooseDirectories = false
-        panel.canChooseFiles = true
-        panel.allowedContentTypes = [.html, .data]
-        panel.title = "Select HTML File"
-        panel.message = "Choose an HTML file to load in the browser"
-
-        if panel.runModal() == .OK {
-            if let url = panel.url {
-                urlString = url.path
-                navigate(to: url)
+    
+    /// Stop loading
+    func stopLoading() {
+        webView.stopLoading()
+    }
+    
+    /// Go back
+    func goBack() {
+        webView.goBack()
+    }
+    
+    /// Go forward
+    func goForward() {
+        webView.goForward()
+    }
+    
+    // MARK: - Private Methods
+    
+    private func setupObservers() {
+        loadingObserver = webView.observe(\.isLoading) { [weak self] _, _ in
+            Task { @MainActor in
+                self?.isLoading = self?.webView.isLoading ?? false
+            }
+        }
+        
+        progressObserver = webView.observe(\.estimatedProgress) { [weak self] _, _ in
+            Task { @MainActor in
+                self?.loadingProgress = self?.webView.estimatedProgress ?? 0.0
+            }
+        }
+        
+        titleObserver = webView.observe(\.title) { [weak self] _, _ in
+            Task { @MainActor in
+                self?.pageTitle = self?.webView.title ?? ""
+            }
+        }
+        
+        urlObserver = webView.observe(\.url) { [weak self] _, _ in
+            Task { @MainActor in
+                if let url = self?.webView.url {
+                    self?.currentURL = url
+                    self?.urlString = url.absoluteString
+                }
+            }
+        }
+        
+        canGoBackObserver = webView.observe(\.canGoBack) { [weak self] _, _ in
+            Task { @MainActor in
+                self?.canGoBack = self?.webView.canGoBack ?? false
+            }
+        }
+        
+        canGoForwardObserver = webView.observe(\.canGoForward) { [weak self] _, _ in
+            Task { @MainActor in
+                self?.canGoForward = self?.webView.canGoForward ?? false
             }
         }
     }
-
-    /// Refreshes the current loaded content
-    func refresh() {
-        guard currentURL != nil else { return }
-        reloadCommand = UUID()
+    
+    private func setupConsoleLogging() {
+        // Inject console capture script
+        let consoleScript = """
+            (function() {
+                const originalLog = console.log;
+                const originalError = console.error;
+                const originalWarn = console.warn;
+                const originalInfo = console.info;
+                
+                function sendToSwift(level, args) {
+                    const message = Array.from(args).map(arg => {
+                        if (typeof arg === 'object') {
+                            try {
+                                return JSON.stringify(arg, null, 2);
+                            } catch(e) {
+                                return String(arg);
+                            }
+                        }
+                        return String(arg);
+                    }).join(' ');
+                    
+                    window.webkit.messageHandlers.consoleLog.postMessage({
+                        level: level,
+                        message: message
+                    });
+                }
+                
+                console.log = function() {
+                    originalLog.apply(console, arguments);
+                    sendToSwift('log', arguments);
+                };
+                
+                console.error = function() {
+                    originalError.apply(console, arguments);
+                    sendToSwift('error', arguments);
+                };
+                
+                console.warn = function() {
+                    originalWarn.apply(console, arguments);
+                    sendToSwift('warning', arguments);
+                };
+                
+                console.info = function() {
+                    originalInfo.apply(console, arguments);
+                    sendToSwift('info', arguments);
+                };
+            })();
+            """
+        
+        let script = WKUserScript(
+            source: consoleScript,
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: false
+        )
+        webView.configuration.userContentController.addUserScript(script)
+        webView.configuration.userContentController.add(self, name: "consoleLog")
     }
-
-    /// Performs a hard reload (bypass cache)
-    func hardReload() {
-        guard currentURL != nil else { return }
-        hardReloadCommand = UUID()
+    
+    func parseURL(from string: String) -> URL? {
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Local file path
+        if trimmed.hasPrefix("/") {
+            let url = URL(fileURLWithPath: trimmed)
+            return FileManager.default.fileExists(atPath: trimmed) ? url : nil
+        }
+        
+        // File URL
+        if trimmed.hasPrefix("file://") {
+            return URL(string: trimmed)
+        }
+        
+        // HTTP/HTTPS URL
+        if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
+            return URL(string: trimmed)
+        }
+        
+        // Try adding https:// prefix
+        if let url = URL(string: "https://\(trimmed)"), url.host != nil {
+            return url
+        }
+        
+        return nil
     }
+}
 
-    /// Stops loading the current page
-    func stopLoading() {
-        stopLoadingCommand = UUID()
-        isLoading = false
-        loadingProgress = 0.0
-    }
-
-    /// Focuses the URL bar
-    func focusURLBar() {
-        focusURLBarCommand = UUID()
-    }
-
-    /// Clears the current URL and loaded content
-    func clearContent() {
-        urlString = ""
-        currentURL = nil
-        navigationRequest = nil
+// MARK: - WKNavigationDelegate
+extension BrowserViewModel: WKNavigationDelegate {
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
         navigationError = nil
-        isLoading = false
     }
-
-    /// Called when WebView successfully loads a URL
-    func didNavigate(to url: URL) {
-        currentURL = url
-        urlString = url.absoluteString
-        navigationError = nil
-    }
-
-    /// Called when navigation fails
-    func navigationFailed(with error: Error) {
-        isLoading = false
-        loadingProgress = 0.0
-        navigationError = error
-    }
-
-    /// Convert NSError codes to user-friendly messages
-    func errorDescription(for error: Error) -> String {
-        let nsError = error as NSError
-
-        switch nsError.code {
-        case NSURLErrorCannotFindHost:
-            return "Server not found. Check the URL and try again."
-        case NSURLErrorCannotConnectToHost:
-            return "Can't connect to the server."
-        case NSURLErrorNotConnectedToInternet:
-            return "No internet connection."
-        case NSURLErrorTimedOut:
-            return "The connection timed out."
-        case NSURLErrorNetworkConnectionLost:
-            return "Network connection was lost."
-        case NSURLErrorServerCertificateHasBadDate,
-            NSURLErrorServerCertificateUntrusted,
-            NSURLErrorServerCertificateHasUnknownRoot,
-            NSURLErrorServerCertificateNotYetValid:
-            return "This website's security certificate has a problem."
-        case NSURLErrorUnsupportedURL:
-            return "The URL format is not supported."
-        case NSURLErrorFileDoesNotExist:
-            return "The file could not be found."
-        case NSURLErrorNoPermissionsToReadFile:
-            return "Permission denied to read this file."
-        default:
-            return nsError.localizedDescription
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        if let url = webView.url {
+            historyManager.addItem(
+                url: url,
+                title: webView.title ?? url.absoluteString,
+                transitionType: .typed
+            )
         }
     }
-
-    // MARK: - Private Methods
-
-    private func isValidURL(_ string: String) -> Bool {
-        guard let url = URL(string: string),
-            let scheme = url.scheme
-        else { return false }
-
-        return ["http", "https", "file"].contains(scheme.lowercased())
+    
+    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        navigationError = error
+        consoleViewModel.addLog(
+            "Navigation failed: \(error.localizedDescription)",
+            level: .error
+        )
     }
+    
+    func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+        navigationError = error
+        
+        let nsError = error as NSError
+        var errorMessage = "Navigation failed: \(error.localizedDescription)"
+        
+        // Add more context for common errors
+        switch nsError.code {
+        case NSURLErrorSecureConnectionFailed:
+            errorMessage += " (SSL/TLS certificate issue)"
+        case NSURLErrorCannotFindHost:
+            errorMessage += " (Cannot find host)"
+        case NSURLErrorNotConnectedToInternet:
+            errorMessage += " (No internet connection)"
+        default:
+            break
+        }
+        
+        consoleViewModel.addLog(errorMessage, level: .error)
+    }
+}
 
-    private func isValidLocalPath(_ path: String) -> Bool {
-        let fileManager = FileManager.default
-        var isDirectory: ObjCBool = false
-
-        guard fileManager.fileExists(atPath: path, isDirectory: &isDirectory),
-            !isDirectory.boolValue
-        else { return false }
-
-        let url = URL(fileURLWithPath: path)
-        return url.pathExtension.lowercased() == "html"
-            || url.pathExtension.lowercased() == "htm"
+// MARK: - WKScriptMessageHandler
+extension BrowserViewModel: WKScriptMessageHandler {
+    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        guard message.name == "consoleLog",
+              let body = message.body as? [String: Any],
+              let level = body["level"] as? String,
+              let messageText = body["message"] as? String else { return }
+        
+        let logLevel: ConsoleLog.LogLevel = switch level {
+        case "error": .error
+        case "warning": .warn
+        case "info": .info
+        default: .log
+        }
+        
+        consoleViewModel.addLog(messageText, level: logLevel)
     }
 }
