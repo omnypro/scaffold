@@ -5,6 +5,7 @@ struct ContentView: View {
     @StateObject private var windowViewModel = WindowViewModel()
     @StateObject private var consoleWindowViewModel: ConsoleWindowViewModel
     @StateObject private var appState = AppState()
+    @StateObject private var layerSystemViewModel = LayerSystemViewModel()
     @FocusState private var isURLFieldFocused: Bool
 
     private let webViewPadding: CGFloat = 8
@@ -42,6 +43,17 @@ struct ContentView: View {
                     )
                 )
         }
+        .overlay(alignment: .leading) {
+            // Layer panel floating overlay
+            if layerSystemViewModel.isPanelVisible {
+                LayerPanelView(viewModel: layerSystemViewModel)
+                    .padding(.leading, 12)
+                    .padding(.vertical, 12)
+                    .transition(.move(edge: .leading).combined(with: .opacity))
+                    .zIndex(1000)
+            }
+        }
+        .animation(.easeInOut(duration: 0.25), value: layerSystemViewModel.isPanelVisible)
         .toolbar {
             ToolbarItemGroup(placement: .principal) {
                 // Back/Forward buttons
@@ -83,6 +95,15 @@ struct ContentView: View {
             }
 
             ToolbarItemGroup(placement: .automatic) {
+                // Layer panel toggle
+                Button(action: { layerSystemViewModel.togglePanel() }) {
+                    Image(
+                        systemName: layerSystemViewModel.isPanelVisible
+                            ? "square.stack.fill" : "square.stack"
+                    )
+                }
+                .help("Toggle layer panel")
+                
                 // Console toggle
                 Button(action: { consoleWindowViewModel.toggle() }) {
                     Image(
@@ -161,7 +182,7 @@ struct ContentView: View {
                     .cornerRadius(8)
             }
 
-            // WebView
+            // Always show main browser as base layer
             appState.selectedEngine.createView(
                 browserViewModel: browserViewModel
             )
@@ -170,9 +191,20 @@ struct ContentView: View {
                     ? Color.black : Color.clear
             )
             .cornerRadius(8)
+            
+            // Render additional layers on top
+            ForEach(layerSystemViewModel.layers.sorted(by: { $0.zIndex < $1.zIndex })) { layer in
+                LayerView(layer: layer)
+                    .frame(
+                        width: windowViewModel.currentSize.width,
+                        height: windowViewModel.currentSize.height
+                    )
+                    .cornerRadius(8)
+                    .allowsHitTesting(layer.id == layerSystemViewModel.selectedLayer?.id)
+            }
 
-            // Loading progress bar
-            if browserViewModel.isLoading {
+            // Loading progress bar (only show for main browser view)
+            if layerSystemViewModel.layers.isEmpty && browserViewModel.isLoading {
                 GeometryReader { geometry in
                     Capsule()
                         .fill(Color.accentColor)
@@ -195,11 +227,18 @@ struct ContentView: View {
 
     private func setupKeyboardShortcuts() {
         NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            if event.modifierFlags.contains(.command)
-                && event.charactersIgnoringModifiers == "l"
-            {
-                isURLFieldFocused = true
-                return nil
+            if event.modifierFlags.contains(.command) {
+                switch event.charactersIgnoringModifiers {
+                case "l":
+                    isURLFieldFocused = true
+                    return nil
+                case "L" where event.modifierFlags.contains(.shift):
+                    // Cmd+Shift+L toggles layer panel
+                    layerSystemViewModel.togglePanel()
+                    return nil
+                default:
+                    break
+                }
             }
             return event
         }
