@@ -6,6 +6,7 @@ struct ContentView: View {
     @StateObject private var consoleWindowViewModel: ConsoleWindowViewModel
     @StateObject private var appState = AppState()
     @FocusState private var isURLFieldFocused: Bool
+    @State private var showLayerSystem = false
 
     private let webViewPadding: CGFloat = 8
 
@@ -41,6 +42,10 @@ struct ContentView: View {
                         trailing: webViewPadding
                     )
                 )
+        }
+        .sheet(isPresented: $showLayerSystem) {
+            LayerSystemView(windowViewModel: windowViewModel)
+                .frame(minWidth: 800, minHeight: 600)
         }
         .toolbar {
             ToolbarItemGroup(placement: .principal) {
@@ -83,6 +88,12 @@ struct ContentView: View {
             }
 
             ToolbarItemGroup(placement: .automatic) {
+                // Layer system toggle
+                Button(action: { showLayerSystem.toggle() }) {
+                    Label("Layers", systemImage: "square.stack.3d.up")
+                }
+                .help("Toggle Layer System (Prototype)")
+
                 // Console toggle
                 Button(action: { consoleWindowViewModel.toggle() }) {
                     Image(
