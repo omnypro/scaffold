@@ -8,10 +8,23 @@ class WindowViewModel: ObservableObject {
     @Published var currentSize: WindowSize {
         didSet {
             saveWindowSize()
+            // Defer window update to avoid SwiftUI update cycle conflicts
+            DispatchQueue.main.async { [weak self] in
+                self?.updateWindowSizeForZoom()
+            }
         }
     }
     @Published var backgroundImage: NSImage? = nil
     private var previousBackgroundImage: NSImage? = nil
+    @Published var zoomLevel: Double = 1.0 {
+        didSet {
+            saveZoomLevel()
+            // Defer window update to avoid SwiftUI update cycle conflicts
+            DispatchQueue.main.async { [weak self] in
+                self?.updateWindowSizeForZoom()
+            }
+        }
+    }
 
     // MARK: - Constants
     private let webViewPadding: CGFloat = 8
@@ -20,16 +33,33 @@ class WindowViewModel: ObservableObject {
     private let windowSizeNameKey = "SavedWindowSizeName"
     private let windowSizeWidthKey = "SavedWindowSizeWidth"
     private let windowSizeHeightKey = "SavedWindowSizeHeight"
+    private let zoomLevelKey = "SavedZoomLevel"
 
     // MARK: - Initialization
     init() {
         // Load saved window size or use default
         self.currentSize = Self.loadSavedWindowSize()
+        // Load saved zoom level
+        self.zoomLevel = UserDefaults.standard.double(forKey: zoomLevelKey)
+        if zoomLevel == 0 {
+            zoomLevel = 1.0
+        }
     }
 
     // MARK: - Computed Properties
     var sizeDisplayText: String {
-        "\(Int(currentSize.width))×\(Int(currentSize.height))"
+        if zoomLevel != 1.0 {
+            return "\(Int(currentSize.width))×\(Int(currentSize.height)) @ \(Int(zoomLevel * 100))%"
+        } else {
+            return "\(Int(currentSize.width))×\(Int(currentSize.height))"
+        }
+    }
+    
+    var effectiveSize: CGSize {
+        CGSize(
+            width: currentSize.width * CGFloat(zoomLevel),
+            height: currentSize.height * CGFloat(zoomLevel)
+        )
     }
 
     func menuItemText(for size: WindowSize) -> String {
@@ -41,16 +71,7 @@ class WindowViewModel: ObservableObject {
     /// Sets the window size and updates the actual window
     func setWindowSize(_ size: WindowSize) {
         currentSize = size
-
-        // Update the actual window size
-        if let window = NSApp.windows.first {
-            window.setContentSize(
-                NSSize(
-                    width: size.width + webViewPadding,
-                    height: size.height + webViewPadding
-                )
-            )
-        }
+        // Window will be resized by the didSet observer which calls updateWindowSizeForZoom
     }
 
     /// Opens a file picker for selecting a background image
@@ -88,19 +109,36 @@ class WindowViewModel: ObservableObject {
             backgroundImage = previous
         }
     }
+    
+    /// Sets the zoom level
+    func setZoomLevel(_ level: Double) {
+        zoomLevel = max(0.25, min(2.0, level))
+    }
+    
+    /// Zoom to fit the current window
+    func zoomToFit() {
+        guard let window = NSApp.windows.first else { return }
+        
+        let screenSize = window.screen?.visibleFrame.size ?? NSSize(width: 1920, height: 1080)
+        let padding: CGFloat = 100 // Leave some margin
+        
+        let maxWidth = screenSize.width - padding
+        let maxHeight = screenSize.height - padding
+        
+        let widthRatio = maxWidth / currentSize.width
+        let heightRatio = maxHeight / currentSize.height
+        
+        let fitRatio = min(widthRatio, heightRatio)
+        setZoomLevel(Double(fitRatio))
+    }
 
     /// Configures the window appearance on initialization
     func setupWindow() {
         if let window = NSApp.windows.first {
             window.titlebarAppearsTransparent = true
 
-            // Apply saved window size
-            window.setContentSize(
-                NSSize(
-                    width: currentSize.width + webViewPadding,
-                    height: currentSize.height + webViewPadding
-                )
-            )
+            // Apply saved window size with zoom
+            updateWindowSizeForZoom()
 
             // Restore saved position or center the window
             restoreWindowPosition(window)
@@ -215,5 +253,25 @@ class WindowViewModel: ObservableObject {
             }
         }
         return false
+    }
+    
+    /// Saves the current zoom level to UserDefaults
+    private func saveZoomLevel() {
+        UserDefaults.standard.set(zoomLevel, forKey: zoomLevelKey)
+    }
+    
+    /// Updates the window size based on the current zoom level
+    private func updateWindowSizeForZoom() {
+        guard let window = NSApp.windows.first else { return }
+        
+        let scaledWidth = currentSize.width * CGFloat(zoomLevel)
+        let scaledHeight = currentSize.height * CGFloat(zoomLevel)
+        
+        window.setContentSize(
+            NSSize(
+                width: scaledWidth + webViewPadding * 2,
+                height: scaledHeight + webViewPadding * 2
+            )
+        )
     }
 }

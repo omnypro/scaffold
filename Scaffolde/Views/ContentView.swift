@@ -27,11 +27,16 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Web content
+            // Web content with zoom scaling
             webContent
                 .frame(
                     width: windowViewModel.currentSize.width,
                     height: windowViewModel.currentSize.height
+                )
+                .scaleEffect(windowViewModel.zoomLevel)
+                .frame(
+                    width: windowViewModel.effectiveSize.width,
+                    height: windowViewModel.effectiveSize.height
                 )
                 .padding(
                     EdgeInsets(
@@ -105,6 +110,44 @@ struct ContentView: View {
                     }
                 } label: {
                     Image(systemName: "aspectratio")
+                }
+
+                // Zoom controls
+                Menu {
+                    Button("Zoom In") {
+                        windowViewModel.setZoomLevel(
+                            windowViewModel.zoomLevel + 0.25
+                        )
+                    }
+                    .keyboardShortcut("+", modifiers: .command)
+
+                    Button("Zoom Out") {
+                        windowViewModel.setZoomLevel(
+                            windowViewModel.zoomLevel - 0.25
+                        )
+                    }
+                    .keyboardShortcut("-", modifiers: .command)
+
+                    Button("Actual Size (100%)") {
+                        windowViewModel.setZoomLevel(1.0)
+                    }
+                    .keyboardShortcut("0", modifiers: .command)
+
+                    Button("Zoom to Fit") {
+                        windowViewModel.zoomToFit()
+                    }
+                    .keyboardShortcut("9", modifiers: .command)
+
+                    Divider()
+
+                    ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) {
+                        zoom in
+                        Button("\(Int(zoom * 100))%") {
+                            windowViewModel.setZoomLevel(zoom)
+                        }
+                    }
+                } label: {
+                    Image(systemName: "plus.magnifyingglass")
                 }
 
                 // Background image menu
