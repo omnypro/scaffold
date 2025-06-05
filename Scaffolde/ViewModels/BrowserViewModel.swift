@@ -353,8 +353,7 @@ class BrowserViewModel: NSObject, ObservableObject {
 
         // Local file path
         if trimmed.hasPrefix("/") {
-            let url = URL(fileURLWithPath: trimmed)
-            return FileManager.default.fileExists(atPath: trimmed) ? url : nil
+            return URL(fileURLWithPath: trimmed)
         }
 
         // File URL
@@ -367,8 +366,15 @@ class BrowserViewModel: NSObject, ObservableObject {
             return URL(string: trimmed)
         }
 
-        // Default to http:// for everything without a protocol
-        if let url = URL(string: "http://\(trimmed)"), url.host != nil {
+        // For localhost URLs, default to http://
+        if trimmed.hasPrefix("localhost") || trimmed.hasPrefix("127.0.0.1")
+            || trimmed.hasPrefix("0.0.0.0")
+        {
+            return URL(string: "http://\(trimmed)")
+        }
+
+        // For other URLs without protocol, default to https://
+        if let url = URL(string: "https://\(trimmed)"), url.host != nil {
             return url
         }
 
@@ -413,7 +419,7 @@ extension BrowserViewModel: WKNavigationDelegate {
             historyManager.addItem(
                 url: url,
                 title: webView.title ?? url.absoluteString,
-                transitionType: .typed
+                transitionType: HistoryVisit.TransitionType.typed
             )
 
             // Save last URL for restoration
@@ -448,7 +454,7 @@ extension BrowserViewModel: WKNavigationDelegate {
 
         consoleViewModel.addLog(
             "Navigation failed: \(error.localizedDescription)",
-            level: .error
+            level: ConsoleLog.LogLevel.error
         )
 
         // Display error page
@@ -498,7 +504,7 @@ extension BrowserViewModel: WKNavigationDelegate {
             break
         }
 
-        consoleViewModel.addLog(errorMessage, level: .error)
+        consoleViewModel.addLog(errorMessage, level: ConsoleLog.LogLevel.error)
 
         // Display error page in WebView
         displayErrorPage(
@@ -523,11 +529,11 @@ extension BrowserViewModel: WKScriptMessageHandler {
 
         let logLevel: ConsoleLog.LogLevel =
             switch level {
-            case "error": .error
-            case "warning": .warn
-            case "info": .info
-            case "debug": .log  // Map debug to log for now
-            default: .log
+            case "error": ConsoleLog.LogLevel.error
+            case "warning": ConsoleLog.LogLevel.warn
+            case "info": ConsoleLog.LogLevel.info
+            case "debug": ConsoleLog.LogLevel.log  // Map debug to log for now
+            default: ConsoleLog.LogLevel.log
             }
 
         consoleViewModel.addLog(messageText, level: logLevel)
@@ -543,12 +549,15 @@ extension BrowserViewModel: WKUIDelegate {
         initiatedByFrame frame: WKFrameInfo,
         completionHandler: @escaping () -> Void
     ) {
-        consoleViewModel.addLog(message, level: .log)
+        consoleViewModel.addLog(message, level: ConsoleLog.LogLevel.log)
         completionHandler()
     }
 
     // Capture console messages from the browser itself
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
-        consoleViewModel.addLog("Web content process terminated", level: .error)
+        consoleViewModel.addLog(
+            "Web content process terminated",
+            level: ConsoleLog.LogLevel.error
+        )
     }
 }
