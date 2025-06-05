@@ -62,7 +62,7 @@ struct ContentView: View {
 
                 // URL field
                 TextField(
-                    "Enter URL or search",
+                    "Enter URL",
                     text: $browserViewModel.urlString
                 )
                 .textFieldStyle(.roundedBorder)
