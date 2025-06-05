@@ -1,5 +1,4 @@
 import SwiftUI
-import Combine
 
 struct ContentView: View {
     @StateObject private var browserViewModel: BrowserViewModel
@@ -141,7 +140,7 @@ struct ContentView: View {
 
                     Divider()
 
-                    ForEach([0.5, 0.75, 1.0, 1.25, 1.5, 2.0], id: \.self) {
+                    ForEach([0.5, 0.75, 1.0], id: \.self) {
                         zoom in
                         Button("\(Int(zoom * 100))%") {
                             windowViewModel.setZoomLevel(zoom)
@@ -178,7 +177,6 @@ struct ContentView: View {
         }
         .onAppear {
             windowViewModel.setupWindow()
-            setupKeyboardShortcuts()
         }
         .focusedSceneValue(
             \.hasBackgroundImage,
@@ -188,8 +186,10 @@ struct ContentView: View {
         .focusedSceneValue(\.browserViewModel, browserViewModel)
         .focusedSceneValue(\.windowViewModel, windowViewModel)
         .focusedSceneValue(\.consoleWindowViewModel, consoleWindowViewModel)
-        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-            setupKeyboardShortcuts()
+        .onChange(of: windowViewModel.shouldFocusURLField) { shouldFocus in
+            if shouldFocus {
+                isURLFieldFocused = true
+            }
         }
     }
 
@@ -237,32 +237,6 @@ struct ContentView: View {
                     .easeInOut(duration: 0.2),
                     value: browserViewModel.loadingProgress
                 )
-            }
-        }
-    }
-
-    private func setupKeyboardShortcuts() {
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            guard event.modifierFlags.contains(.command) else { return event }
-            
-            switch event.charactersIgnoringModifiers {
-            case "l":
-                isURLFieldFocused = true
-                return nil
-            case "=", "+":  // Cmd+ for zoom in
-                windowViewModel.setZoomLevel(windowViewModel.zoomLevel + 0.05)
-                return nil
-            case "-":  // Cmd- for zoom out
-                windowViewModel.setZoomLevel(windowViewModel.zoomLevel - 0.05)
-                return nil
-            case "0":  // Cmd+0 for actual size
-                windowViewModel.setZoomLevel(1.0)
-                return nil
-            case "9":  // Cmd+9 for zoom to fit
-                windowViewModel.zoomToFit()
-                return nil
-            default:
-                return event
             }
         }
     }
