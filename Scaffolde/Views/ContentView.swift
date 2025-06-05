@@ -106,6 +106,12 @@ struct ContentView: View {
 
                 // Zoom controls
                 Menu {
+                    Button("Actual Size (100%)") {
+                        windowViewModel.setZoomLevel(1.0)
+                    }
+                    .disabled(windowViewModel.zoomLevel == 1.0)
+                    .keyboardShortcut("0", modifiers: .command)
+
                     Button("Zoom In") {
                         windowViewModel.setZoomLevel(
                             windowViewModel.zoomLevel + 0.05
@@ -120,11 +126,6 @@ struct ContentView: View {
                     }
                     .keyboardShortcut("-", modifiers: .command)
 
-                    Button("Actual Size (100%)") {
-                        windowViewModel.setZoomLevel(1.0)
-                    }
-                    .keyboardShortcut("0", modifiers: .command)
-
                     Divider()
 
                     ForEach([0.5, 0.75, 1.0], id: \.self) {
@@ -132,6 +133,7 @@ struct ContentView: View {
                         Button("\(Int(zoom * 100))%") {
                             windowViewModel.setZoomLevel(zoom)
                         }
+                        .disabled(windowViewModel.zoomLevel == zoom)
                     }
 
                     Divider()

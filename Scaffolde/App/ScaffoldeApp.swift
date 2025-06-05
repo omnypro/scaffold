@@ -89,6 +89,28 @@ struct ScaffoldeApp: App {
 
                 Divider()
 
+                Button("Actual Size") {
+                    windowViewModel?.setZoomLevel(1.0)
+                }
+                .disabled(windowViewModel?.zoomLevel == 1.0)
+                .keyboardShortcut("0", modifiers: .command)
+
+                Button("Zoom In") {
+                    if let viewModel = windowViewModel {
+                        viewModel.setZoomLevel(viewModel.zoomLevel + 0.05)
+                    }
+                }
+                .keyboardShortcut("+", modifiers: .command)
+
+                Button("Zoom Out") {
+                    if let viewModel = windowViewModel {
+                        viewModel.setZoomLevel(viewModel.zoomLevel - 0.05)
+                    }
+                }
+                .keyboardShortcut("-", modifiers: .command)
+
+                Divider()
+
                 Button("Toggle Console") {
                     consoleWindowViewModel?.toggle()
                 }
@@ -127,7 +149,7 @@ struct ScaffoldeApp: App {
                         )
                     }
                 }
-                
+
                 Divider()
             }
         }
