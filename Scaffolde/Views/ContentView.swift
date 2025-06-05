@@ -187,7 +187,7 @@ struct ContentView: View {
         .focusedSceneValue(\.browserViewModel, browserViewModel)
         .focusedSceneValue(\.windowViewModel, windowViewModel)
         .focusedSceneValue(\.consoleWindowViewModel, consoleWindowViewModel)
-        .onChange(of: windowViewModel.shouldFocusURLField) { shouldFocus in
+        .onChange(of: windowViewModel.shouldFocusURLField) { _, shouldFocus in
             if shouldFocus {
                 isURLFieldFocused = true
             }

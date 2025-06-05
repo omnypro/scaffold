@@ -46,6 +46,7 @@ class BrowserViewModel: NSObject, ObservableObject {
 
         // Set delegates
         webView.navigationDelegate = self
+        webView.uiDelegate = self
 
         // Setup observers for WebView properties
         setupObservers()
@@ -104,6 +105,25 @@ class BrowserViewModel: NSObject, ObservableObject {
     /// Go forward
     func goForward() {
         webView.goForward()
+    }
+    
+    /// Open Web Inspector
+    func openWebInspector() {
+        // Try the modern approach first
+        if webView.responds(to: Selector(("_showInspector"))) {
+            webView.perform(Selector(("_showInspector")))
+        } else if webView.responds(to: Selector(("showInspector"))) {
+            webView.perform(Selector(("showInspector")))
+        } else {
+            // Fallback: Try to get the inspector and show it
+            if let inspector = webView.perform(Selector(("_inspector")))?.takeUnretainedValue() as? NSObject {
+                if inspector.responds(to: Selector(("show:"))) {
+                    inspector.perform(Selector(("show:")), with: nil)
+                } else if inspector.responds(to: Selector(("showWindow:"))) {
+                    inspector.perform(Selector(("showWindow:")), with: nil)
+                }
+            }
+        }
     }
 
     // MARK: - Private Methods
@@ -257,6 +277,7 @@ class BrowserViewModel: NSObject, ObservableObject {
                 const originalError = console.error;
                 const originalWarn = console.warn;
                 const originalInfo = console.info;
+                const originalDebug = console.debug;
                 
                 function sendToSwift(level, args) {
                     const message = Array.from(args).map(arg => {
@@ -294,6 +315,11 @@ class BrowserViewModel: NSObject, ObservableObject {
                 console.info = function() {
                     originalInfo.apply(console, arguments);
                     sendToSwift('info', arguments);
+                };
+                
+                console.debug = function() {
+                    originalDebug.apply(console, arguments);
+                    sendToSwift('debug', arguments);
                 };
             })();
             """
@@ -365,8 +391,8 @@ extension BrowserViewModel: WKNavigationDelegate {
         navigationError = error
 
         let nsError = error as NSError
-        var errorTitle = "Page Load Error"
-        var errorDescription = error.localizedDescription
+        let errorTitle = "Page Load Error"
+        let errorDescription = error.localizedDescription
 
         // Handle specific error cases
         switch nsError.code {
@@ -457,9 +483,24 @@ extension BrowserViewModel: WKScriptMessageHandler {
             case "error": .error
             case "warning": .warn
             case "info": .info
+            case "debug": .log  // Map debug to log for now
             default: .log
             }
 
         consoleViewModel.addLog(messageText, level: logLevel)
+    }
+}
+
+// MARK: - WKUIDelegate
+extension BrowserViewModel: WKUIDelegate {
+    // This captures native console messages that aren't from JavaScript console.* calls
+    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+        consoleViewModel.addLog(message, level: .log)
+        completionHandler()
+    }
+    
+    // Capture console messages from the browser itself
+    func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+        consoleViewModel.addLog("Web content process terminated", level: .error)
     }
 }

@@ -83,10 +83,16 @@ struct ConsoleLogRow: View {
                 
                 // Message
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(displayMessage)
-                        .font(.system(.body, design: .monospaced))
-                        .textSelection(.enabled)
-                        .fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 8) {
+                        Text("[\(log.level.rawValue)]")
+                            .font(.system(.body, design: .monospaced))
+                            .foregroundColor(levelColor)
+                        
+                        Text(displayMessage)
+                            .font(.system(.body, design: .monospaced))
+                            .textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     
                     if shouldShowExpander {
                         Button(action: { isExpanded.toggle() }) {
