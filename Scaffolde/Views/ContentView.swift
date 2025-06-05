@@ -88,14 +88,6 @@ struct ContentView: View {
             }
 
             ToolbarItemGroup(placement: .automatic) {
-                // Console toggle
-                Button(action: { consoleWindowViewModel.toggle() }) {
-                    Image(
-                        systemName: consoleWindowViewModel.isVisible
-                            ? "terminal.fill" : "terminal"
-                    )
-                }
-
                 // Window size display
                 Text(windowViewModel.sizeDisplayText)
                     .font(.system(size: 12, weight: .bold, design: .monospaced))
