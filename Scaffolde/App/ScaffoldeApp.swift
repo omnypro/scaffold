@@ -55,6 +55,11 @@ struct ScaffoldeApp: App {
             }
 
             CommandGroup(replacing: .toolbar) {
+                Button("Stop") {
+                    browserViewModel?.stopLoading()
+                }
+                .keyboardShortcut(".", modifiers: [.command])
+
                 Button("Reload") {
                     browserViewModel?.reload()
                 }
@@ -91,16 +96,6 @@ struct ScaffoldeApp: App {
 
                 Divider()
 
-                Button("Focus URL Bar") {
-                    // This is handled via FocusState in ContentView
-                }
-                .keyboardShortcut("L", modifiers: .command)
-
-                Button("Stop Loading") {
-                    browserViewModel?.stopLoading()
-                }
-                .keyboardShortcut(.escape, modifiers: [])
-
                 Menu("History") {
                     Button("Clear History...") {
                         // Show confirmation dialog
@@ -132,6 +127,8 @@ struct ScaffoldeApp: App {
                         )
                     }
                 }
+                
+                Divider()
             }
         }
         .windowToolbarStyle(.unified(showsTitle: false))
