@@ -30,6 +30,8 @@ class BrowserViewModel: NSObject, ObservableObject {
     private var canGoBackObserver: NSKeyValueObservation?
     private var canGoForwardObserver: NSKeyValueObservation?
 
+    private let lastURLKey = "LastOpenedURL"
+
     // MARK: - Initialization
     init(historyManager: HistoryManager, consoleViewModel: ConsoleViewModel) {
         self.historyManager = historyManager
@@ -53,6 +55,9 @@ class BrowserViewModel: NSObject, ObservableObject {
 
         // Setup console logging
         setupConsoleLogging()
+
+        // Restore last URL if available
+        restoreLastURL()
     }
 
     // MARK: - Navigation Methods
@@ -106,7 +111,7 @@ class BrowserViewModel: NSObject, ObservableObject {
     func goForward() {
         webView.goForward()
     }
-    
+
     /// Open Web Inspector
     func openWebInspector() {
         // Try the modern approach first
@@ -116,11 +121,13 @@ class BrowserViewModel: NSObject, ObservableObject {
             webView.perform(Selector(("showInspector")))
         } else {
             // Fallback: Try to get the inspector and show it
-            if let inspector = webView.perform(Selector(("_inspector")))?.takeUnretainedValue() as? NSObject {
+            if let inspector = webView.perform(Selector(("_inspector")))?
+                .takeUnretainedValue() as? NSObject
+            {
                 if inspector.responds(to: Selector(("show:"))) {
                     inspector.perform(Selector(("show:")), with: nil)
-                } else if inspector.responds(to: Selector(("showWindow:"))) {
-                    inspector.perform(Selector(("showWindow:")), with: nil)
+                } else if inspector.responds(to: #selector(NSWindowController.showWindow(_:))) {
+                    inspector.perform(#selector(NSWindowController.showWindow(_:)), with: nil)
                 }
             }
         }
@@ -362,6 +369,29 @@ class BrowserViewModel: NSObject, ObservableObject {
 
         return nil
     }
+
+    /// Restores the last opened URL from UserDefaults
+    private func restoreLastURL() {
+        guard
+            let savedURLString = UserDefaults.standard.string(
+                forKey: lastURLKey
+            ),
+            let url = URL(string: savedURLString)
+        else { return }
+
+        // Update the URL string in the UI
+        urlString = savedURLString
+
+        // Load the URL
+        if url.isFileURL {
+            webView.loadFileURL(
+                url,
+                allowingReadAccessTo: url.deletingLastPathComponent()
+            )
+        } else {
+            webView.load(URLRequest(url: url))
+        }
+    }
 }
 
 // MARK: - WKNavigationDelegate
@@ -380,6 +410,14 @@ extension BrowserViewModel: WKNavigationDelegate {
                 title: webView.title ?? url.absoluteString,
                 transitionType: .typed
             )
+
+            // Save last URL for restoration
+            if url.absoluteString != "about:blank" {
+                UserDefaults.standard.set(
+                    url.absoluteString,
+                    forKey: lastURLKey
+                )
+            }
         }
     }
 
@@ -494,11 +532,16 @@ extension BrowserViewModel: WKScriptMessageHandler {
 // MARK: - WKUIDelegate
 extension BrowserViewModel: WKUIDelegate {
     // This captures native console messages that aren't from JavaScript console.* calls
-    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+    func webView(
+        _ webView: WKWebView,
+        runJavaScriptAlertPanelWithMessage message: String,
+        initiatedByFrame frame: WKFrameInfo,
+        completionHandler: @escaping () -> Void
+    ) {
         consoleViewModel.addLog(message, level: .log)
         completionHandler()
     }
-    
+
     // Capture console messages from the browser itself
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
         consoleViewModel.addLog("Web content process terminated", level: .error)
