@@ -4,14 +4,14 @@ struct ConsoleToolbar: View {
     @ObservedObject var viewModel: ConsoleViewModel
     @State private var searchText = ""
     @State private var showingExporter = false
-    
+
     private func generateExportFilename() -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd-HHmmss"
         let dateString = formatter.string(from: Date())
         return "console-logs-\(dateString).txt"
     }
-    
+
     var body: some View {
         HStack(spacing: 16) {
             // Search field
@@ -28,15 +28,15 @@ struct ConsoleToolbar: View {
             .background(Color(NSColor.controlBackgroundColor))
             .cornerRadius(6)
             .frame(width: 200)
-            
+
             Divider()
                 .frame(height: 20)
-            
+
             // Filter buttons
             ConsoleFilterButtons(viewModel: viewModel)
-            
+
             Spacer()
-            
+
             // Action buttons
             HStack(spacing: 12) {
                 Button(action: { viewModel.clearLogs() }) {
@@ -45,7 +45,7 @@ struct ConsoleToolbar: View {
                 }
                 .buttonStyle(.plain)
                 .help("Clear all logs")
-                
+
                 Button(action: { showingExporter = true }) {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 14))
@@ -73,7 +73,7 @@ struct ConsoleToolbar: View {
 
 struct ConsoleFilterButtons: View {
     @ObservedObject var viewModel: ConsoleViewModel
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // All filter (with icon)
@@ -81,30 +81,41 @@ struct ConsoleFilterButtons: View {
                 HStack(spacing: 4) {
                     Image(systemName: "line.3.horizontal.decrease.circle")
                         .font(.system(size: 14))
-                    if viewModel.filterLevel == nil && viewModel.logs.count > 0 {
+                    if viewModel.filterLevel == nil && viewModel.logs.count > 0
+                    {
                         Text("\(viewModel.logs.count)")
                             .font(.caption)
                     }
                 }
-                .foregroundColor(viewModel.filterLevel == nil ? .primary : .secondary)
+                .foregroundColor(
+                    viewModel.filterLevel == nil ? .primary : .secondary
+                )
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
             }
             .buttonStyle(.plain)
-            .background(viewModel.filterLevel == nil ? Color.accentColor.opacity(0.2) : Color.clear)
+            .background(
+                viewModel.filterLevel == nil
+                    ? Color.accentColor.opacity(0.2) : Color.clear
+            )
             .cornerRadius(6)
             .help("Show all logs")
-            
+
             Divider()
                 .frame(height: 16)
-            
-            ForEach([ConsoleLog.LogLevel.error, .warn, .info, .log], id: \.self) { level in
+
+            ForEach(
+                [ConsoleLog.LogLevel.error, .warn, .info, .log],
+                id: \.self
+            ) { level in
                 FilterButton(
                     level: level,
                     isActive: viewModel.filterLevel == level,
                     count: viewModel.logs.filter { $0.level == level }.count
                 ) {
-                    viewModel.setFilter(viewModel.filterLevel == level ? nil : level)
+                    viewModel.setFilter(
+                        viewModel.filterLevel == level ? nil : level
+                    )
                 }
             }
         }
@@ -116,7 +127,7 @@ struct FilterButton: View {
     let isActive: Bool
     let count: Int
     let action: () -> Void
-    
+
     var levelColor: Color {
         switch level {
         case .error: return .red
@@ -125,7 +136,7 @@ struct FilterButton: View {
         case .log: return .secondary
         }
     }
-    
+
     var levelIcon: String {
         switch level {
         case .error: return "xmark.circle.fill"
@@ -134,7 +145,7 @@ struct FilterButton: View {
         case .log: return "text.bubble.fill"
         }
     }
-    
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {

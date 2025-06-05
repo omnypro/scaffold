@@ -37,19 +37,19 @@ class ConsoleViewModel: ObservableObject {
     // MARK: - Computed Properties
     var filteredLogs: [ConsoleLog] {
         var filtered = logs
-        
+
         // Filter by level if set
         if let filterLevel = filterLevel {
             filtered = filtered.filter { $0.level == filterLevel }
         }
-        
+
         // Filter by search text
         if !searchText.isEmpty {
             filtered = filtered.filter { log in
                 log.message.localizedCaseInsensitiveContains(searchText)
             }
         }
-        
+
         return filtered
     }
 

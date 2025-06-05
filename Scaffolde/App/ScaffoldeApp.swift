@@ -1,3 +1,4 @@
+import Sparkle
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -5,10 +6,17 @@ import UniformTypeIdentifiers
 struct ScaffoldeApp: App {
     @Environment(\.openWindow) private var openWindow
     @FocusedValue(\.hasBackgroundImage) private var hasBackgroundImage: Bool?
-    @FocusedValue(\.selectedBrowserEngine) private var selectedEngine: BrowserEngine?
-    @FocusedValue(\.browserViewModel) private var browserViewModel: BrowserViewModel?
-    @FocusedValue(\.windowViewModel) private var windowViewModel: WindowViewModel?
-    @FocusedValue(\.consoleWindowViewModel) private var consoleWindowViewModel: ConsoleWindowViewModel?
+    @FocusedValue(\.selectedBrowserEngine) private var selectedEngine:
+        BrowserEngine?
+    @FocusedValue(\.browserViewModel) private var browserViewModel:
+        BrowserViewModel?
+    @FocusedValue(\.windowViewModel) private var windowViewModel:
+        WindowViewModel?
+    @FocusedValue(\.consoleWindowViewModel) private var consoleWindowViewModel:
+        ConsoleWindowViewModel?
+
+    // Sparkle updater
+    @StateObject private var updaterViewModel = SparkleUpdaterViewModel()
 
     var body: some Scene {
         WindowGroup {
@@ -22,8 +30,12 @@ struct ScaffoldeApp: App {
                 Button("About Scaffolde") {
                     openWindow(id: "about")
                 }
+
+                Divider()
+
+                CheckForUpdatesView(updaterViewModel: updaterViewModel)
             }
-            
+
             CommandGroup(after: .newItem) {
                 Button("Open File...") {
                     let panel = NSOpenPanel()
@@ -33,7 +45,7 @@ struct ScaffoldeApp: App {
                     panel.allowedContentTypes = [.html, .data]
                     panel.title = "Select HTML File"
                     panel.message = "Choose an HTML file to load in the browser"
-                    
+
                     if panel.runModal() == .OK {
                         if let url = panel.url {
                             browserViewModel?.urlString = url.path
@@ -94,7 +106,8 @@ struct ScaffoldeApp: App {
                 Menu("History") {
                     Button("Clear History...") {
                         // Show confirmation dialog
-                        if let historyManager = browserViewModel?.historyManager {
+                        if let historyManager = browserViewModel?.historyManager
+                        {
                             NSAlert.showClearHistoryAlert { shouldClear in
                                 if shouldClear {
                                     historyManager.clearHistory()
@@ -104,15 +117,21 @@ struct ScaffoldeApp: App {
                     }
 
                     Button("Clear History from Today") {
-                        browserViewModel?.historyManager.clearHistoryOlderThan(days: 0)
+                        browserViewModel?.historyManager.clearHistoryOlderThan(
+                            days: 0
+                        )
                     }
 
                     Button("Clear History Older Than 7 Days") {
-                        browserViewModel?.historyManager.clearHistoryOlderThan(days: 7)
+                        browserViewModel?.historyManager.clearHistoryOlderThan(
+                            days: 7
+                        )
                     }
 
                     Button("Clear History Older Than 30 Days") {
-                        browserViewModel?.historyManager.clearHistoryOlderThan(days: 30)
+                        browserViewModel?.historyManager.clearHistoryOlderThan(
+                            days: 30
+                        )
                     }
                 }
             }

@@ -11,9 +11,9 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>0.9.3</string>
+	<string>1.0.0</string>
 	<key>CFBundleVersion</key>
-	<string>58+</string>
+	<string>59+</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.developer-tools</string>
 	<key>NSAppTransportSecurity</key>
@@ -27,7 +27,13 @@
 	<string>© 2025 Omnyist Productions, LLC. All rights reserved.</string>
 	<key>NSQuitAlwaysKeepsWindows</key>
 	<false/>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://updates.omny.pro/scaffolde/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>AdC4DRf3OgTrAcniwxZhSpEDEly6PR/OQXps4PSOnao=</string>
 	<key>ScaffoldeCommit</key>
-	<string>b843658</string>
+	<string>18c75f2</string>
 </dict>
 </plist>

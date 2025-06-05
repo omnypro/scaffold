@@ -60,11 +60,12 @@ class WindowViewModel: ObservableObject {
             return "\(Int(currentSize.width))×\(Int(currentSize.height))"
         }
     }
-    
+
     var displayInfoText: String {
         let screenInfo = getCurrentScreenInfo()
         let scale = screenInfo.scale > 1 ? " @\(Int(screenInfo.scale))x" : ""
-        return "\(Int(screenInfo.size.width))×\(Int(screenInfo.size.height))\(scale)"
+        return
+            "\(Int(screenInfo.size.width))×\(Int(screenInfo.size.height))\(scale)"
     }
 
     var effectiveSize: CGSize {
@@ -206,7 +207,7 @@ class WindowViewModel: ObservableObject {
     func setupWindow() {
         if let window = NSApp.windows.first {
             window.titlebarAppearsTransparent = true
-            
+
             // Disable manual resizing
             window.styleMask.remove(.resizable)
 

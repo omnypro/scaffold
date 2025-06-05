@@ -3,14 +3,21 @@ import SwiftUI
 struct ConsoleLogList: View {
     @ObservedObject var viewModel: ConsoleViewModel
     @State private var selectedLogID: UUID?
-    
+
     var body: some View {
         ScrollViewReader { proxy in
             List(selection: $selectedLogID) {
                 ForEach(viewModel.filteredLogs) { log in
                     ConsoleLogRow(log: log)
                         .id(log.id)
-                        .listRowInsets(EdgeInsets(top: 2, leading: 12, bottom: 2, trailing: 12))
+                        .listRowInsets(
+                            EdgeInsets(
+                                top: 2,
+                                leading: 12,
+                                bottom: 2,
+                                trailing: 12
+                            )
+                        )
                         .listRowBackground(
                             selectedLogID == log.id
                                 ? Color.accentColor.opacity(0.1)
@@ -35,11 +42,11 @@ struct ConsoleLogList: View {
 struct ConsoleLogRow: View {
     let log: ConsoleLog
     @State private var isExpanded = false
-    
+
     private var shouldShowExpander: Bool {
         log.message.count > 150 || log.message.contains("\n")
     }
-    
+
     private var displayMessage: String {
         if !isExpanded && shouldShowExpander {
             let truncated = String(log.message.prefix(150))
@@ -47,7 +54,7 @@ struct ConsoleLogRow: View {
         }
         return log.message
     }
-    
+
     private var levelColor: Color {
         switch log.level {
         case .error: return .red
@@ -56,7 +63,7 @@ struct ConsoleLogRow: View {
         case .log: return .secondary
         }
     }
-    
+
     private var levelIcon: String {
         switch log.level {
         case .error: return "xmark.circle.fill"
@@ -65,7 +72,7 @@ struct ConsoleLogRow: View {
         case .log: return "text.bubble"
         }
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .top, spacing: 12) {
@@ -74,26 +81,26 @@ struct ConsoleLogRow: View {
                     .foregroundColor(levelColor)
                     .font(.system(size: 14))
                     .frame(width: 16)
-                
+
                 // Timestamp
                 Text(log.timestamp, style: .time)
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(.secondary)
                     .frame(width: 70, alignment: .leading)
-                
+
                 // Message
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 8) {
                         Text("[\(log.level.rawValue)]")
                             .font(.system(.body, design: .monospaced))
                             .foregroundColor(levelColor)
-                        
+
                         Text(displayMessage)
                             .font(.system(.body, design: .monospaced))
                             .textSelection(.enabled)
                             .fixedSize(horizontal: false, vertical: true)
                     }
-                    
+
                     if shouldShowExpander {
                         Button(action: { isExpanded.toggle() }) {
                             Text(isExpanded ? "Show less" : "Show more")
@@ -103,7 +110,7 @@ struct ConsoleLogRow: View {
                         .buttonStyle(.plain)
                     }
                 }
-                
+
                 Spacer()
             }
             .padding(.vertical, 4)
@@ -113,7 +120,7 @@ struct ConsoleLogRow: View {
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(log.message, forType: .string)
             }
-            
+
             Button("Copy All Details") {
                 let details = formatLogDetails(log)
                 NSPasteboard.general.clearContents()
@@ -121,7 +128,7 @@ struct ConsoleLogRow: View {
             }
         }
     }
-    
+
     private func formatLogDetails(_ log: ConsoleLog) -> String {
         let timestamp = ISO8601DateFormatter().string(from: log.timestamp)
         let level = log.level.rawValue.uppercased()

@@ -55,7 +55,7 @@ class HistoryManager: ObservableObject {
             )
             items.append(newItem)
         }
-        
+
         // Clean up old items
         cleanupHistory()
 
@@ -288,7 +288,7 @@ class HistorySearchProvider: ObservableObject {
         autocompleteURL = nil
         isSearching = false
     }
-    
+
     @MainActor
     func showRecentHistory() {
         searchResults = historyManager.search("", limit: 10)

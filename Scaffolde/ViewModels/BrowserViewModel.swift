@@ -126,8 +126,13 @@ class BrowserViewModel: NSObject, ObservableObject {
             {
                 if inspector.responds(to: Selector(("show:"))) {
                     inspector.perform(Selector(("show:")), with: nil)
-                } else if inspector.responds(to: #selector(NSWindowController.showWindow(_:))) {
-                    inspector.perform(#selector(NSWindowController.showWindow(_:)), with: nil)
+                } else if inspector.responds(
+                    to: #selector(NSWindowController.showWindow(_:))
+                ) {
+                    inspector.perform(
+                        #selector(NSWindowController.showWindow(_:)),
+                        with: nil
+                    )
                 }
             }
         }

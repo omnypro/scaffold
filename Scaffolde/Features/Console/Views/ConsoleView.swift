@@ -2,13 +2,13 @@ import SwiftUI
 
 struct ConsoleView: View {
     @ObservedObject var viewModel: ConsoleViewModel
-    
+
     var body: some View {
         VStack(spacing: 0) {
             ConsoleToolbar(viewModel: viewModel)
-            
+
             Divider()
-            
+
             if viewModel.filteredLogs.isEmpty {
                 EmptyConsoleView()
             } else {
@@ -26,16 +26,18 @@ struct EmptyConsoleView: View {
             Image(systemName: "doc.text.magnifyingglass")
                 .font(.system(size: 48))
                 .foregroundColor(.secondary)
-            
+
             Text("No console logs")
                 .font(.headline)
                 .foregroundColor(.secondary)
-            
-            Text("Console messages will appear here when pages log to the console")
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 300)
+
+            Text(
+                "Console messages will appear here when pages log to the console"
+            )
+            .font(.caption)
+            .foregroundColor(.secondary)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: 300)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(NSColor.textBackgroundColor))
