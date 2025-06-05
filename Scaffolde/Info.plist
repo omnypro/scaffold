@@ -13,7 +13,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>0.9.3</string>
 	<key>CFBundleVersion</key>
-	<string>54+</string>
+	<string>55+</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.developer-tools</string>
 	<key>NSAppTransportSecurity</key>
@@ -28,6 +28,6 @@
 	<key>NSQuitAlwaysKeepsWindows</key>
 	<false/>
 	<key>ScaffoldeCommit</key>
-	<string>7a71a59</string>
+	<string>394b821</string>
 </dict>
 </plist>

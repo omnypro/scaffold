@@ -133,11 +133,6 @@ struct ContentView: View {
                     }
                     .keyboardShortcut("0", modifiers: .command)
 
-                    Button("Zoom to Fit") {
-                        windowViewModel.zoomToFit()
-                    }
-                    .keyboardShortcut("9", modifiers: .command)
-
                     Divider()
 
                     ForEach([0.5, 0.75, 1.0], id: \.self) {
@@ -146,6 +141,12 @@ struct ContentView: View {
                             windowViewModel.setZoomLevel(zoom)
                         }
                     }
+
+                    Divider()
+
+                    Text("Display: \(windowViewModel.displayInfoText)")
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
                 } label: {
                     Image(systemName: "plus.magnifyingglass")
                 }

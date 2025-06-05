@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import SwiftUI
 
 /// ViewModel responsible for managing window sizing and display settings
 @MainActor
@@ -58,6 +59,12 @@ class WindowViewModel: ObservableObject {
         } else {
             return "\(Int(currentSize.width))×\(Int(currentSize.height))"
         }
+    }
+    
+    var displayInfoText: String {
+        let screenInfo = getCurrentScreenInfo()
+        let scale = screenInfo.scale > 1 ? " @\(Int(screenInfo.scale))x" : ""
+        return "\(Int(screenInfo.size.width))×\(Int(screenInfo.size.height))\(scale)"
     }
 
     var effectiveSize: CGSize {
