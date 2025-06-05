@@ -129,6 +129,7 @@ struct ContentView: View {
                             ? "photo.fill" : "photo"
                     )
                 }
+
             }
         }
         .onAppear {
