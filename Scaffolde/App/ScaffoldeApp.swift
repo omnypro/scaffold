@@ -31,8 +31,6 @@ struct ScaffoldeApp: App {
                     openWindow(id: "about")
                 }
 
-                Divider()
-
                 CheckForUpdatesView(updaterViewModel: updaterViewModel)
             }
 
