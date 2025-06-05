@@ -206,6 +206,9 @@ class WindowViewModel: ObservableObject {
     func setupWindow() {
         if let window = NSApp.windows.first {
             window.titlebarAppearsTransparent = true
+            
+            // Disable manual resizing
+            window.styleMask.remove(.resizable)
 
             // Apply saved window size with zoom
             updateWindowSizeForZoom()
