@@ -7,13 +7,13 @@ import WebKit
 class BrowserViewModel: NSObject, ObservableObject {
     // MARK: - Published Properties
     @Published var urlString: String = ""
-    @Published var currentURL: URL? = nil
+    @Published var currentURL: URL?
     @Published var isLoading: Bool = false
     @Published var loadingProgress: Double = 0.0
     @Published var pageTitle: String = ""
     @Published var canGoBack: Bool = false
     @Published var canGoForward: Bool = false
-    @Published var navigationError: Error? = nil
+    @Published var navigationError: Error?
 
     // MARK: - WebView
     let webView: WKWebView
@@ -122,8 +122,7 @@ class BrowserViewModel: NSObject, ObservableObject {
         } else {
             // Fallback: Try to get the inspector and show it
             if let inspector = webView.perform(Selector(("_inspector")))?
-                .takeUnretainedValue() as? NSObject
-            {
+                .takeUnretainedValue() as? NSObject {
                 if inspector.responds(to: Selector(("show:"))) {
                     inspector.perform(Selector(("show:")), with: nil)
                 } else if inspector.responds(
@@ -243,8 +242,7 @@ class BrowserViewModel: NSObject, ObservableObject {
             }
         }
 
-        progressObserver = webView.observe(\.estimatedProgress) {
-            [weak self] _, _ in
+        progressObserver = webView.observe(\.estimatedProgress) { [weak self] _, _ in
             Task { @MainActor in
                 self?.loadingProgress = self?.webView.estimatedProgress ?? 0.0
             }
@@ -273,8 +271,7 @@ class BrowserViewModel: NSObject, ObservableObject {
             }
         }
 
-        canGoForwardObserver = webView.observe(\.canGoForward) {
-            [weak self] _, _ in
+        canGoForwardObserver = webView.observe(\.canGoForward) { [weak self] _, _ in
             Task { @MainActor in
                 self?.canGoForward = self?.webView.canGoForward ?? false
             }
@@ -368,8 +365,7 @@ class BrowserViewModel: NSObject, ObservableObject {
 
         // For localhost URLs, default to http://
         if trimmed.hasPrefix("localhost") || trimmed.hasPrefix("127.0.0.1")
-            || trimmed.hasPrefix("0.0.0.0")
-        {
+            || trimmed.hasPrefix("0.0.0.0") {
             return URL(string: "http://\(trimmed)")
         }
 

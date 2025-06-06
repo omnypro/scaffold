@@ -97,8 +97,7 @@ struct HistoryItem: Identifiable, Codable, Equatable {
         // Word boundary match in URL
         if urlString.contains("://\(lowercaseQuery)")
             || urlString.contains("/\(lowercaseQuery)")
-            || urlString.contains(".\(lowercaseQuery)")
-        {
+            || urlString.contains(".\(lowercaseQuery)") {
             return 600.0
         }
 

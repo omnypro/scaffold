@@ -27,7 +27,7 @@ struct ConsoleLogList: View {
             }
             .listStyle(.plain)
             .background(Color(NSColor.textBackgroundColor))
-            .onChange(of: viewModel.filteredLogs.count) { oldValue, newValue in
+            .onChange(of: viewModel.filteredLogs.count) { _, _ in
                 // Auto-scroll to bottom when new logs arrive
                 if let lastLog = viewModel.filteredLogs.last {
                     withAnimation(.easeInOut(duration: 0.2)) {
@@ -102,7 +102,9 @@ struct ConsoleLogRow: View {
                     }
 
                     if shouldShowExpander {
-                        Button(action: { isExpanded.toggle() }) {
+                        Button {
+                            isExpanded.toggle()
+                        } label: {
                             Text(isExpanded ? "Show less" : "Show more")
                                 .font(.caption)
                                 .foregroundColor(.accentColor)

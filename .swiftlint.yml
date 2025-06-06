@@ -1,0 +1,83 @@
+# SwiftLint configuration for Scaffolde
+
+# Paths to include
+included:
+  - Scaffolde
+  - ScaffoldeTests
+  - ScaffoldeUITests
+
+# Paths to exclude
+excluded:
+  - Scaffolde.xcodeproj
+  - build
+  - .build
+  - Scripts
+  - docs
+
+# Rule configuration
+opt_in_rules:
+  - empty_count
+  - empty_string
+  - closure_end_indentation
+  - closure_spacing
+  - contains_over_first_not_nil
+  - empty_collection_literal
+  - empty_xctest_method
+  - explicit_init
+  - first_where
+  - force_unwrapping
+  - joined_default_parameter
+  - last_where
+  - modifier_order
+  - operator_usage_whitespace
+  - prefer_self_type_over_type_of_self
+  - redundant_nil_coalescing
+  - redundant_type_annotation
+  - single_test_class
+  - sorted_first_last
+  - unneeded_parentheses_in_closure_argument
+  - yoda_condition
+
+# Disabled rules
+disabled_rules:
+  - trailing_whitespace # Can be annoying during development
+  - todo # We want to keep TODOs
+  - file_length # ViewModels naturally grow large
+  - function_body_length # Some functions need to be longer
+  - type_body_length # ViewModels accumulate many properties and methods
+
+# Rule parameters
+line_length:
+  warning: 120
+  error: 150
+  ignores_comments: true
+  ignores_urls: true
+
+identifier_name:
+  min_length:
+    warning: 2
+  max_length:
+    warning: 40
+    error: 50
+  excluded:
+    - id
+    - ID
+    - URL
+    - url
+    - app
+    - dx
+    - dy
+
+# Custom rules
+custom_rules:
+  no_print_statements:
+    name: "Print Statements"
+    regex: '\bprint\('
+    message: "Use proper logging instead of print statements"
+    severity: warning
+    
+  no_force_cast:
+    name: "Force Cast"
+    regex: 'as! '
+    message: "Avoid force casting, use conditional casting instead"
+    severity: error

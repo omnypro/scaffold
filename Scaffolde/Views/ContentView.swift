@@ -50,12 +50,16 @@ struct ContentView: View {
         .toolbar {
             ToolbarItemGroup(placement: .principal) {
                 // Back/Forward buttons
-                Button(action: { browserViewModel.goBack() }) {
+                Button {
+                    browserViewModel.goBack()
+                } label: {
                     Image(systemName: "chevron.left")
                 }
                 .disabled(!browserViewModel.canGoBack)
 
-                Button(action: { browserViewModel.goForward() }) {
+                Button {
+                    browserViewModel.goForward()
+                } label: {
                     Image(systemName: "chevron.right")
                 }
                 .disabled(!browserViewModel.canGoForward)
@@ -73,13 +77,13 @@ struct ContentView: View {
                 }
 
                 // Reload button
-                Button(action: {
+                Button {
                     if browserViewModel.isLoading {
                         browserViewModel.stopLoading()
                     } else {
                         browserViewModel.reload()
                     }
-                }) {
+                } label: {
                     Image(
                         systemName: browserViewModel.isLoading
                             ? "xmark" : "arrow.clockwise"
@@ -128,8 +132,7 @@ struct ContentView: View {
 
                     Divider()
 
-                    ForEach([0.5, 0.75, 1.0], id: \.self) {
-                        zoom in
+                    ForEach([0.5, 0.75, 1.0], id: \.self) { zoom in
                         Button("\(Int(zoom * 100))%") {
                             windowViewModel.setZoomLevel(zoom)
                         }

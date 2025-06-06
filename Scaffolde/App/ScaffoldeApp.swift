@@ -121,8 +121,7 @@ struct ScaffoldeApp: App {
                 Menu("History") {
                     Button("Clear History...") {
                         // Show confirmation dialog
-                        if let historyManager = browserViewModel?.historyManager
-                        {
+                        if let historyManager = browserViewModel?.historyManager {
                             NSAlert.showClearHistoryAlert { shouldClear in
                                 if shouldClear {
                                     historyManager.clearHistory()

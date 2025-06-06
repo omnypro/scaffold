@@ -14,7 +14,7 @@ class HistoryManager: ObservableObject {
         FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
-        ).first!
+        ).first ?? FileManager.default.temporaryDirectory
         .appendingPathComponent("Scaffolde")
         .appendingPathComponent(historyFileName)
     }
@@ -110,8 +110,7 @@ class HistoryManager: ObservableObject {
 
         // Check if host starts with query
         if let host = bestMatch.url.host,
-            host.lowercased().hasPrefix(lowercaseQuery)
-        {
+            host.lowercased().hasPrefix(lowercaseQuery) {
             return urlString
         }
 
@@ -153,7 +152,7 @@ class HistoryManager: ObservableObject {
         let appSupportURL = FileManager.default.urls(
             for: .applicationSupportDirectory,
             in: .userDomainMask
-        ).first!
+        ).first ?? FileManager.default.temporaryDirectory
         let scaffoldeURL = appSupportURL.appendingPathComponent("Scaffolde")
 
         if !FileManager.default.fileExists(atPath: scaffoldeURL.path) {

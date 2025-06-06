@@ -68,11 +68,10 @@ struct AboutView: View {
                     if let build {
                         PropertyRow(label: "Build", text: build)
                     }
-                    if let commit, commit != "",
+                    if let commit, !commit.isEmpty,
                         let url = githubURL?.appendingPathComponent(
                             "/commits/\(commit)"
-                        )
-                    {
+                        ) {
                         PropertyRow(label: "Commit", text: commit, url: url)
                     }
                 }

@@ -118,6 +118,7 @@
 			buildConfigurationList = E3166C7B2DEABF14001D5492 /* Build configuration list for PBXNativeTarget "Scaffolde" */;
 			buildPhases = (
 				E3166C8E2DEB766E001D5492 /* Set Build Number from Git */,
+				E3166C8F2DEB766F001D5493 /* SwiftLint */,
 				E3166C552DEABF13001D5492 /* Sources */,
 				E3166C562DEABF13001D5492 /* Frameworks */,
 				E3166C572DEABF13001D5492 /* Resources */,
@@ -273,6 +274,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "  # Get git info from the project directory\n  cd \"${PROJECT_DIR}\"\n\n  # Get commit count for build number\n  BUILD_NUMBER=$(git rev-list --count HEAD 2>/dev/null || echo \"0\")\n\n  # Get commit SHA for reference (optional)\n  GIT_SHA=$(git rev-parse --short HEAD 2>/dev/null || echo \"unknown\")\n\n  # Check for uncommitted changes\n  if ! git diff --quiet HEAD 2>/dev/null; then\n      BUILD_NUMBER=\"${BUILD_NUMBER}+\"  # Add + for dirty builds\n  fi\n\n  echo \"Build number: $BUILD_NUMBER (commit: $GIT_SHA)\"\n\n  # Update the source Info.plist\n  SOURCE_PLIST=\"${PROJECT_DIR}/Scaffolde/Info.plist\"\n  if [ -f \"$SOURCE_PLIST\" ]; then\n      # Set build number\n      /usr/libexec/PlistBuddy -c \"Add :CFBundleVersion string $BUILD_NUMBER\" \"$SOURCE_PLIST\" 2>/dev/null || \\\n      /usr/libexec/PlistBuddy -c \"Set :CFBundleVersion $BUILD_NUMBER\" \"$SOURCE_PLIST\"\n\n      # Optionally store commit SHA\n      /usr/libexec/PlistBuddy -c \"Add :ScaffoldeCommit string $GIT_SHA\" \"$SOURCE_PLIST\" 2>/dev/null || \\\n      /usr/libexec/PlistBuddy -c \"Set :ScaffoldeCommit $GIT_SHA\" \"$SOURCE_PLIST\"\n  fi\n";
+		};
+		E3166C8F2DEB766F001D5493 /* SwiftLint */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "SwiftLint";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nif [[ \"$(uname -m)\" == arm64 ]]; then\n    export PATH=\"/opt/homebrew/bin:$PATH\"\nfi\n\nif which swiftlint > /dev/null; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\n  echo \"warning: Install with: brew install swiftlint\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

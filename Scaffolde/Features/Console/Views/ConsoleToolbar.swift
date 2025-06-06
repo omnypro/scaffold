@@ -39,14 +39,18 @@ struct ConsoleToolbar: View {
 
             // Action buttons
             HStack(spacing: 12) {
-                Button(action: { viewModel.clearLogs() }) {
+                Button {
+                    viewModel.clearLogs()
+                } label: {
                     Image(systemName: "trash")
                         .font(.system(size: 14))
                 }
                 .buttonStyle(.plain)
                 .help("Clear all logs")
 
-                Button(action: { showingExporter = true }) {
+                Button {
+                    showingExporter = true
+                } label: {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 14))
                 }
@@ -62,10 +66,10 @@ struct ConsoleToolbar: View {
             document: ConsoleLogDocument(logs: viewModel.filteredLogs),
             contentType: .plainText,
             defaultFilename: generateExportFilename()
-        ) { result in
+        ) { _ in
             // Handle export result if needed
         }
-        .onChange(of: searchText) { oldValue, newValue in
+        .onChange(of: searchText) { _, newValue in
             viewModel.searchText = newValue
         }
     }
@@ -77,12 +81,13 @@ struct ConsoleFilterButtons: View {
     var body: some View {
         HStack(spacing: 12) {
             // All filter (with icon)
-            Button(action: { viewModel.setFilter(nil) }) {
+            Button {
+                viewModel.setFilter(nil)
+            } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "line.3.horizontal.decrease.circle")
                         .font(.system(size: 14))
-                    if viewModel.filterLevel == nil && viewModel.logs.count > 0
-                    {
+                    if viewModel.filterLevel == nil && !viewModel.logs.isEmpty {
                         Text("\(viewModel.logs.count)")
                             .font(.caption)
                     }
@@ -151,7 +156,7 @@ struct FilterButton: View {
             HStack(spacing: 4) {
                 Image(systemName: levelIcon)
                     .font(.system(size: 14))
-                if count > 0 {
+                if count != 0 { // swiftlint:disable:this empty_count
                     Text("\(count)")
                         .font(.caption)
                 }

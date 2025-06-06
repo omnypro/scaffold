@@ -31,7 +31,7 @@ struct ConsoleLog: Identifiable, Equatable {
 class ConsoleViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var logs: [ConsoleLog] = []
-    @Published var filterLevel: ConsoleLog.LogLevel? = nil
+    @Published var filterLevel: ConsoleLog.LogLevel?
     @Published var searchText: String = ""
 
     // MARK: - Computed Properties
@@ -53,10 +53,16 @@ class ConsoleViewModel: ObservableObject {
         return filtered
     }
 
-    var logCounts: (total: Int, errors: Int, warnings: Int) {
+    struct LogCounts {
+        let total: Int
+        let errors: Int
+        let warnings: Int
+    }
+    
+    var logCounts: LogCounts {
         let errors = logs.filter { $0.level == .error }.count
         let warnings = logs.filter { $0.level == .warn }.count
-        return (logs.count, errors, warnings)
+        return LogCounts(total: logs.count, errors: errors, warnings: warnings)
     }
 
     // MARK: - Public Methods

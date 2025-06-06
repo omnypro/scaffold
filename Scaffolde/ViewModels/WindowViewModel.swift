@@ -15,8 +15,8 @@ class WindowViewModel: ObservableObject {
             }
         }
     }
-    @Published var backgroundImage: NSImage? = nil
-    private var previousBackgroundImage: NSImage? = nil
+    @Published var backgroundImage: NSImage?
+    private var previousBackgroundImage: NSImage?
     @Published var zoomLevel: Double = 1.0 {
         didSet {
             saveZoomLevel()
@@ -104,8 +104,7 @@ class WindowViewModel: ObservableObject {
 
         if panel.runModal() == .OK {
             if let url = panel.url,
-                let image = NSImage(contentsOf: url)
-            {
+                let image = NSImage(contentsOf: url) {
                 backgroundImage = image
             }
         }
@@ -362,8 +361,7 @@ class WindowViewModel: ObservableObject {
         }
 
         // Install new monitor
-        keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) {
-            [weak self] event in
+        keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self else { return event }
             guard event.modifierFlags.contains(.command) else { return event }
 

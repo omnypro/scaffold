@@ -7,10 +7,6 @@ import XCTest
 @MainActor
 class CoreFunctionalityTests: XCTestCase {
 
-    override func setUp() {
-        super.setUp()
-    }
-
     // MARK: - URL Parsing Tests
 
     func testURLParsingForWebURLs() async {
@@ -21,7 +17,7 @@ class CoreFunctionalityTests: XCTestCase {
             ("https://google.com", "https://google.com"),
             ("http://example.com", "http://example.com"),
             ("google.com", "https://google.com"),
-            ("example.com:8080", "https://example.com:8080"),
+            ("example.com:8080", "https://example.com:8080")
         ]
 
         for (input, expected) in validURLs {
@@ -46,7 +42,7 @@ class CoreFunctionalityTests: XCTestCase {
             ("localhost:8080", "http://localhost:8080"),
             ("127.0.0.1", "http://127.0.0.1"),
             ("127.0.0.1:8080", "http://127.0.0.1:8080"),
-            ("0.0.0.0:4000", "http://0.0.0.0:4000"),
+            ("0.0.0.0:4000", "http://0.0.0.0:4000")
         ]
 
         for (input, expected) in localhostURLs {
@@ -66,7 +62,7 @@ class CoreFunctionalityTests: XCTestCase {
         // Test file paths
         let filePaths = [
             "/Users/test/file.html",
-            "file:///Users/test/file.html",
+            "file:///Users/test/file.html"
         ]
 
         for path in filePaths {
@@ -109,7 +105,11 @@ class CoreFunctionalityTests: XCTestCase {
                 expectation.fulfill()
             }
             
-            func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            func webView(
+                _ webView: WKWebView,
+                didFailProvisionalNavigation navigation: WKNavigation!,
+                withError error: Error
+            ) {
                 // Still fulfill expectation on failure so test doesn't hang
                 expectation.fulfill()
             }
@@ -154,7 +154,7 @@ class CoreFunctionalityTests: XCTestCase {
         // Verify console script is injected
         let scripts = viewModel.webView.configuration.userContentController
             .userScripts
-        XCTAssertTrue(scripts.count > 0, "Console script should be injected")
+        XCTAssertTrue(!scripts.isEmpty, "Console script should be injected")
 
         // Verify message handler is registered
         // Note: WKUserContentController doesn't expose handlers, so we test indirectly
@@ -172,7 +172,10 @@ class CoreFunctionalityTests: XCTestCase {
         _ = historyManager.items.count
 
         // Simulate successful navigation
-        _ = URL(string: "https://example.com")!
+        guard URL(string: "https://example.com") != nil else {
+            XCTFail("Test URL should be valid")
+            return
+        }
         viewModel.webView(viewModel.webView, didFinish: nil)
 
         // Note: In real implementation, we'd need to mock the webView.url property
