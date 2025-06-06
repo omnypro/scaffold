@@ -21,7 +21,6 @@ on:
 
 env:
   MACOS_VERSION: macos-latest
-  XCODE_VERSION: '15.4'
 
 jobs:
   build-and-release:
@@ -35,10 +34,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Full history for changelog generation
+          fetch-depth: 0  # Full history for changelog generation 
       
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+        run: |
+          # Use the latest Xcode available on the runner
+          sudo xcode-select -s /Applications/Xcode.app
       
       - name: Determine version
         id: version
