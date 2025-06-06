@@ -94,21 +94,37 @@ class CoreFunctionalityTests: XCTestCase {
 
     func testNavigationTriggersWebViewLoad() async {
         let viewModel = createBrowserViewModel()
-        let mockDelegate = MockNavigationDelegate()
-        viewModel.webView.navigationDelegate = mockDelegate
+        let expectation = self.expectation(description: "Navigation started")
+        
+        class TestDelegate: NSObject, WKNavigationDelegate {
+            let expectation: XCTestExpectation
+            var didStart = false
+            
+            init(expectation: XCTestExpectation) {
+                self.expectation = expectation
+            }
+            
+            func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+                didStart = true
+                expectation.fulfill()
+            }
+            
+            func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+                // Still fulfill expectation on failure so test doesn't hang
+                expectation.fulfill()
+            }
+        }
+        
+        let testDelegate = TestDelegate(expectation: expectation)
+        viewModel.webView.navigationDelegate = testDelegate
 
         viewModel.urlString = "https://example.com"
         viewModel.navigate()
 
-        // Wait briefly for navigation to start
-        let expectation = self.expectation(description: "Navigation started")
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            expectation.fulfill()
-        }
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await fulfillment(of: [expectation], timeout: 5.0)
 
         XCTAssertTrue(
-            mockDelegate.didStartNavigation,
+            testDelegate.didStart,
             "Navigation should have started"
         )
     }
@@ -153,10 +169,10 @@ class CoreFunctionalityTests: XCTestCase {
             consoleViewModel: ConsoleViewModel()
         )
 
-        let initialCount = historyManager.items.count
+        _ = historyManager.items.count
 
         // Simulate successful navigation
-        let testURL = URL(string: "https://example.com")!
+        _ = URL(string: "https://example.com")!
         viewModel.webView(viewModel.webView, didFinish: nil)
 
         // Note: In real implementation, we'd need to mock the webView.url property
