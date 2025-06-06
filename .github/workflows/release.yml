@@ -1,0 +1,250 @@
+name: Release
+
+on:
+  # Manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+      dry_run:
+        description: 'Dry run (skip upload steps)'
+        required: false
+        type: boolean
+        default: true
+  
+  # Automatic trigger on version tags (disabled until testing is complete)
+  # push:
+  #   tags:
+  #     - 'v*'
+
+env:
+  MACOS_VERSION: macos-latest
+  XCODE_VERSION: '15.4'
+
+jobs:
+  build-and-release:
+    name: Build and Release
+    runs-on: macos-latest
+    
+    # Only run on main repo, not forks
+    if: github.repository == 'omnypro/scaffolde'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for changelog generation
+      
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_${{ env.XCODE_VERSION }}.app
+      
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION=${GITHUB_REF#refs/tags/v}
+          fi
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+      
+      - name: Setup code signing
+        if: ${{ !github.event.inputs.dry_run }}
+        env:
+          DEVELOPER_CERTIFICATE_BASE64: ${{ secrets.DEVELOPER_CERTIFICATE_BASE64 }}
+          DEVELOPER_CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          # Create temporary keychain
+          KEYCHAIN_PATH=$RUNNER_TEMP/signing.keychain-db
+          
+          # Create keychain
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          
+          # Import certificate
+          echo "$DEVELOPER_CERTIFICATE_BASE64" | base64 --decode > certificate.p12
+          security import certificate.p12 -k $KEYCHAIN_PATH -P "$DEVELOPER_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          
+          # Set key partition list (allows codesign to access the certificate)
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+      
+      - name: Update version in Info.plist
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${{ steps.version.outputs.VERSION }}" Scaffolde/Info.plist
+          
+          # Generate build number from commit count
+          BUILD_NUMBER=$(git rev-list --count HEAD)
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" Scaffolde/Info.plist
+          
+          echo "Updated to version ${{ steps.version.outputs.VERSION }} (build $BUILD_NUMBER)"
+      
+      - name: Build application
+        run: |
+          xcodebuild clean build \
+            -project Scaffolde.xcodeproj \
+            -scheme Scaffolde \
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="${{ github.event.inputs.dry_run && '-' || 'Developer ID Application' }}" \
+            CODE_SIGN_STYLE="${{ github.event.inputs.dry_run && 'Manual' || 'Automatic' }}" \
+            DEVELOPMENT_TEAM="${{ github.event.inputs.dry_run && '' || 'GSPJH236WZ' }}" \
+            PRODUCT_BUNDLE_IDENTIFIER="pro.omny.scaffolde"
+      
+      - name: Create DMG
+        run: |
+          # Find the built app
+          APP_PATH=$(find build -name "Scaffolde.app" -type d | head -n 1)
+          
+          # Create staging directory
+          STAGING_DIR="build/dmg-staging"
+          mkdir -p "$STAGING_DIR"
+          
+          # Copy app to staging
+          cp -R "$APP_PATH" "$STAGING_DIR/"
+          
+          # Create Applications symlink
+          ln -s /Applications "$STAGING_DIR/Applications"
+          
+          # Create DMG
+          DMG_NAME="Scaffolde-${{ steps.version.outputs.VERSION }}.dmg"
+          hdiutil create -volname "Scaffolde" \
+            -srcfolder "$STAGING_DIR" \
+            -ov -format UDZO \
+            "build/$DMG_NAME"
+          
+          echo "DMG_PATH=build/$DMG_NAME" >> $GITHUB_ENV
+          echo "Created DMG: $DMG_NAME"
+      
+      - name: Sign DMG
+        if: ${{ !github.event.inputs.dry_run }}
+        run: |
+          codesign --force --sign "Developer ID Application: Omnyist Productions, LLC (GSPJH236WZ)" \
+            --timestamp \
+            "${{ env.DMG_PATH }}"
+          
+          # Verify signature
+          codesign --verify --verbose "${{ env.DMG_PATH }}"
+      
+      - name: Notarize app
+        if: ${{ !github.event.inputs.dry_run }}
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          TEAM_ID: GSPJH236WZ
+        run: |
+          echo "Submitting for notarization..."
+          
+          xcrun notarytool submit "${{ env.DMG_PATH }}" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$TEAM_ID" \
+            --wait \
+            --timeout 20m
+          
+          echo "Stapling notarization ticket..."
+          xcrun stapler staple "${{ env.DMG_PATH }}"
+          
+          # Verify notarization
+          spctl -a -t open --context context:primary-signature -v "${{ env.DMG_PATH }}"
+      
+      - name: Generate Sparkle signature
+        if: ${{ !github.event.inputs.dry_run }}
+        env:
+          SPARKLE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          # Download Sparkle tools if needed
+          if [ ! -f "tools/generate_appcast" ]; then
+            echo "Downloading Sparkle tools..."
+            SPARKLE_VERSION="2.6.0"
+            curl -L -o sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/$SPARKLE_VERSION/Sparkle-$SPARKLE_VERSION.tar.xz"
+            tar -xf sparkle.tar.xz
+            mkdir -p tools
+            cp -R Sparkle.app/Contents/Resources/generate_appcast tools/
+            rm -rf Sparkle.app sparkle.tar.xz
+          fi
+          
+          # Generate EdDSA signature
+          DMG_SIZE=$(stat -f%z "${{ env.DMG_PATH }}")
+          echo "DMG size: $DMG_SIZE bytes"
+          
+          # TODO: Implement actual Sparkle signing
+          # For now, just prepare the metadata
+          echo "SPARKLE_SIZE=$DMG_SIZE" >> $GITHUB_ENV
+      
+      - name: Create GitHub Release
+        if: ${{ !github.event.inputs.dry_run }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: Scaffolde ${{ steps.version.outputs.VERSION }}
+          draft: true  # Create as draft for review
+          generate_release_notes: true
+          files: |
+            ${{ env.DMG_PATH }}
+          body: |
+            ## What's New
+            
+            <!-- Release notes will be auto-generated -->
+            
+            ## Installation
+            
+            1. Download `Scaffolde-${{ steps.version.outputs.VERSION }}.dmg`
+            2. Open the DMG and drag Scaffolde to your Applications folder
+            3. Launch Scaffolde from Applications
+            
+            ## Update Information
+            
+            - **Size**: ${{ env.SPARKLE_SIZE }} bytes
+            - **Minimum macOS**: 15.4
+            - **Universal Binary**: Yes (Intel + Apple Silicon)
+      
+      - name: Upload to Cloudflare R2
+        if: ${{ !github.event.inputs.dry_run && success() }}
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: omnyist-updates
+        run: |
+          echo "TODO: Implement R2 upload"
+          echo "Would upload ${{ env.DMG_PATH }} to R2"
+          
+          # This would use wrangler or aws-cli with R2 endpoint
+          # wrangler r2 object put $R2_BUCKET/scaffolde/Scaffolde-${{ steps.version.outputs.VERSION }}.dmg --file=${{ env.DMG_PATH }}
+      
+      - name: Update appcast.xml
+        if: ${{ !github.event.inputs.dry_run && success() }}
+        run: |
+          echo "TODO: Generate and update appcast.xml"
+          echo "Would update appcast with version ${{ steps.version.outputs.VERSION }}"
+      
+      # Always upload artifacts for inspection
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-artifacts-${{ steps.version.outputs.VERSION }}
+          path: |
+            build/*.dmg
+            build/Release/Scaffolde.app
+          retention-days: 7
+      
+      - name: Summary
+        run: |
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: ${{ github.event.inputs.dry_run && 'Yes' || 'No' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **DMG**: ${{ env.DMG_PATH }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ github.event.inputs.dry_run }}" == "true" ]]; then
+            echo "⚠️ This was a dry run. No artifacts were signed or uploaded." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ Release artifacts created and signed successfully!" >> $GITHUB_STEP_SUMMARY
+          fi
