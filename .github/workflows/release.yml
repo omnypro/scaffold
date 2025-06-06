@@ -14,10 +14,10 @@ on:
         type: boolean
         default: true
   
-  # Automatic trigger on version tags (disabled until testing is complete)
-  # push:
-  #   tags:
-  #     - 'v*'
+  # Automatic trigger on version tags
+  push:
+    tags:
+      - 'v*'
 
 env:
   MACOS_VERSION: macos-latest
@@ -159,24 +159,24 @@ jobs:
         env:
           SPARKLE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
-          # Download Sparkle tools if needed
-          if [ ! -f "tools/generate_appcast" ]; then
-            echo "Downloading Sparkle tools..."
-            SPARKLE_VERSION="2.6.0"
-            curl -L -o sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/$SPARKLE_VERSION/Sparkle-$SPARKLE_VERSION.tar.xz"
-            tar -xf sparkle.tar.xz
-            mkdir -p tools
-            cp -R Sparkle.app/Contents/Resources/generate_appcast tools/
-            rm -rf Sparkle.app sparkle.tar.xz
-          fi
+          # Download Sparkle tools
+          echo "Downloading Sparkle tools..."
+          SPARKLE_VERSION="2.6.0"
+          curl -L -o sparkle.tar.xz "https://github.com/sparkle-project/Sparkle/releases/download/$SPARKLE_VERSION/Sparkle-$SPARKLE_VERSION.tar.xz"
+          tar -xf sparkle.tar.xz
           
-          # Generate EdDSA signature
+          # Sign the DMG
+          echo "$SPARKLE_KEY" > sparkle_key.txt
+          ./bin/sign_update "${{ env.DMG_PATH }}" -f sparkle_key.txt > sparkle_signature.txt
+          SPARKLE_SIGNATURE=$(cat sparkle_signature.txt | tr -d '\n')
+          rm -f sparkle_key.txt sparkle_signature.txt
+          
+          # Get DMG size
           DMG_SIZE=$(stat -f%z "${{ env.DMG_PATH }}")
-          echo "DMG size: $DMG_SIZE bytes"
           
-          # TODO: Implement actual Sparkle signing
-          # For now, just prepare the metadata
           echo "SPARKLE_SIZE=$DMG_SIZE" >> $GITHUB_ENV
+          echo "SPARKLE_SIGNATURE=$SPARKLE_SIGNATURE" >> $GITHUB_ENV
+          echo "Sparkle signature: $SPARKLE_SIGNATURE"
       
       - name: Create GitHub Release
         if: ${{ !github.event.inputs.dry_run }}
@@ -212,17 +212,25 @@ jobs:
           R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           R2_BUCKET: omnyist-updates
         run: |
-          echo "TODO: Implement R2 upload"
-          echo "Would upload ${{ env.DMG_PATH }} to R2"
+          # Install AWS CLI (compatible with R2)
+          brew install awscli
           
-          # This would use wrangler or aws-cli with R2 endpoint
-          # wrangler r2 object put $R2_BUCKET/scaffolde/Scaffolde-${{ steps.version.outputs.VERSION }}.dmg --file=${{ env.DMG_PATH }}
+          # Configure AWS CLI for R2
+          aws configure set aws_access_key_id $R2_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $R2_SECRET_ACCESS_KEY
+          aws configure set region auto
+          
+          # R2 endpoint
+          R2_ENDPOINT="https://4c8e78cf91c9fcaeec5ad7f00f9ddae1.r2.cloudflarestorage.com"
+          
+          # Upload DMG to R2
+          aws s3 cp "${{ env.DMG_PATH }}" \
+            s3://$R2_BUCKET/scaffolde/Scaffolde-${{ steps.version.outputs.VERSION }}.dmg \
+            --endpoint-url $R2_ENDPOINT \
+            --no-progress
+          
+          echo "Uploaded DMG to R2: https://updates.omnyist.productions/scaffolde/Scaffolde-${{ steps.version.outputs.VERSION }}.dmg"
       
-      - name: Update appcast.xml
-        if: ${{ !github.event.inputs.dry_run && success() }}
-        run: |
-          echo "TODO: Generate and update appcast.xml"
-          echo "Would update appcast with version ${{ steps.version.outputs.VERSION }}"
       
       # Always upload artifacts for inspection
       - name: Upload artifacts
