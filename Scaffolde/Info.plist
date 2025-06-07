@@ -13,7 +13,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.0</string>
 	<key>CFBundleVersion</key>
-	<string>71</string>
+	<string>72+</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.developer-tools</string>
 	<key>NSAppTransportSecurity</key>
@@ -34,6 +34,6 @@
 	<key>SUPublicEDKey</key>
 	<string>AdC4DRf3OgTrAcniwxZhSpEDEly6PR/OQXps4PSOnao=</string>
 	<key>ScaffoldeCommit</key>
-	<string>0005587</string>
+	<string>e352392</string>
 </dict>
 </plist>

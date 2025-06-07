@@ -399,6 +399,49 @@ class BrowserViewModel: NSObject, ObservableObject {
             webView.load(URLRequest(url: url))
         }
     }
+    
+    /// Fetch favicon for the current page
+    private func fetchFavicon(for webView: WKWebView) {
+        guard let url = webView.url else { return }
+        
+        // JavaScript to find favicon
+        let faviconScript = """
+            (function() {
+                // Try different favicon locations
+                var links = document.querySelectorAll('link[rel*="icon"]');
+                if (links.length > 0) {
+                    // Prefer apple-touch-icon for better quality
+                    for (var i = 0; i < links.length; i++) {
+                        if (links[i].rel.includes('apple-touch-icon')) {
+                            return links[i].href;
+                        }
+                    }
+                    return links[0].href;
+                }
+                
+                // Check for default favicon.ico
+                return window.location.origin + '/favicon.ico';
+            })();
+        """
+        
+        webView.evaluateJavaScript(faviconScript) { [weak self] result, _ in
+            guard let self = self,
+                  let faviconURLString = result as? String,
+                  let faviconURL = URL(string: faviconURLString) else { return }
+            
+            // Download favicon
+            Task {
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: faviconURL)
+                    await MainActor.run {
+                        self.historyManager.updateFavicon(for: url, faviconData: data)
+                    }
+                } catch {
+                    // Silently fail if favicon can't be downloaded
+                }
+            }
+        }
+    }
 }
 
 // MARK: - WKNavigationDelegate
@@ -425,6 +468,9 @@ extension BrowserViewModel: WKNavigationDelegate {
                     forKey: lastURLKey
                 )
             }
+            
+            // Fetch favicon
+            fetchFavicon(for: webView)
         }
     }
 

@@ -117,39 +117,101 @@ struct ScaffoldeApp: App {
                 .keyboardShortcut("J", modifiers: [.command, .option])
 
                 Divider()
+            }
 
-                Menu("History") {
-                    Button("Clear History...") {
-                        // Show confirmation dialog
-                        if let historyManager = browserViewModel?.historyManager {
-                            NSAlert.showClearHistoryAlert { shouldClear in
-                                if shouldClear {
-                                    historyManager.clearHistory()
+            // History menu - separate top-level menu like Safari
+            CommandMenu("History") {
+                // TODO: Implement history window
+                /*
+                Button("Show All History") {
+                    // This will open a dedicated history window in a future update
+                }
+                .keyboardShortcut("Y", modifiers: .command)
+                .disabled(true)
+                
+                Divider()
+                */
+
+                // Back/Forward items with current page titles
+                if let viewModel = browserViewModel {
+                    Button("Back") {
+                        viewModel.goBack()
+                    }
+                    .keyboardShortcut("[", modifiers: .command)
+                    .disabled(!viewModel.canGoBack)
+
+                    Button("Forward") {
+                        viewModel.goForward()
+                    }
+                    .keyboardShortcut("]", modifiers: .command)
+                    .disabled(!viewModel.canGoForward)
+
+                    Divider()
+                }
+
+                // Recent history items
+                if let historyManager = browserViewModel?.historyManager {
+                    let recentItems = historyManager.items
+                        .sorted { $0.lastVisit > $1.lastVisit }
+                        .prefix(15)
+
+                    if !recentItems.isEmpty {
+                        ForEach(Array(recentItems)) { item in
+                            Button(
+                                action: {
+                                    browserViewModel?.urlString =
+                                        item.url.absoluteString
+                                    browserViewModel?.navigate()
+                                },
+                                label: {
+                                    HStack(spacing: 6) {
+                                        // Favicon
+                                        if let faviconData = item.faviconData,
+                                            let nsImage = NSImage(
+                                                data: faviconData
+                                            ) {
+                                            Image(nsImage: nsImage)
+                                                .resizable()
+                                                .frame(width: 16, height: 16)
+                                                .cornerRadius(2)
+                                        } else {
+                                            // Default globe icon if no favicon
+                                            Image(systemName: "globe")
+                                                .font(.system(size: 12))
+                                                .frame(width: 16, height: 16)
+                                                .foregroundColor(.secondary)
+                                        }
+
+                                        // Page title
+                                        Text(
+                                            item.title.isEmpty
+                                                ? item.url.host
+                                                    ?? item.url.absoluteString
+                                                : item.title
+                                        )
+                                        .lineLimit(1)
+                                        .truncationMode(.tail)
+                                    }
                                 }
-                            }
+                            )
+                            .help(item.url.absoluteString)
                         }
-                    }
 
-                    Button("Clear History from Today") {
-                        browserViewModel?.historyManager.clearHistoryOlderThan(
-                            days: 0
-                        )
-                    }
-
-                    Button("Clear History Older Than 7 Days") {
-                        browserViewModel?.historyManager.clearHistoryOlderThan(
-                            days: 7
-                        )
-                    }
-
-                    Button("Clear History Older Than 30 Days") {
-                        browserViewModel?.historyManager.clearHistoryOlderThan(
-                            days: 30
-                        )
+                        Divider()
                     }
                 }
 
                 Divider()
+
+                Button("Clear History...") {
+                    if let historyManager = browserViewModel?.historyManager {
+                        NSAlert.showClearHistoryAlert { shouldClear in
+                            if shouldClear {
+                                historyManager.clearHistory()
+                            }
+                        }
+                    }
+                }
             }
         }
         .windowToolbarStyle(.unified(showsTitle: false))
